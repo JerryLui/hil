@@ -1,9 +1,27 @@
 .transparent {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.9);
 }
 
-.table-custom {
-    background: rgba(50, 56, 62, 0.7);
+.custom-bg-color {
+    background: rgba(0, 0, 0, 0.50);
+}
+
+.form-custom {
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.dropdown-custom {
+    height: 50px !important;
+    overflow: scroll;
+}
+
+.btn-custom {
+    margin-top: 15px;
+}
+
+.header-adjust {
+    padding-left: 15px;
 }
 
 .navbar {
@@ -17,15 +35,15 @@
 
 .text-limit {
     word-wrap: break-word;
-    max-width: 100px;
+    max-width: 150px;
 }
 
 html, body {
-  height: 100%;
-  width: 100%;
-  padding: 0px;
-  margin: 0px;
-  overflow: hidden;
+    height: 100%;
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+    overflow: hidden;
 }
 
 body {
