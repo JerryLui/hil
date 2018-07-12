@@ -8,7 +8,7 @@ import random
 import os
 import sys
 
-from db_setup import Task, File
+from models import Task, File, User, Status
 
 # Flask app config
 app = Flask(__name__)
@@ -25,13 +25,19 @@ db = SQLAlchemy(app)
 @app.route('/', methods=['GET'])
 @app.route('/index', methods=['GET'])
 def index():
-    return render_template('index.html', tasks=tasks, logs=app.config['LOG_INDEX'].keys())
+    return render_template('index.html', tasks=Task.query_all(), logs=app.config['LOG_INDEX'].keys())
 
 
 @app.route('/create', methods=['POST'])
 def create_task():
-    file_name = request.form['filename']
-    db.session.add(Task(file_name=file_name, status=0))
+    try:
+        file = File.query.filter_by(file_name=request.form['filename']).first()
+        db.session.add(Task(file_name=file.file_name, status=0))
+        flash('Task created successfully', 'info')
+        return index()
+    except Exception as xcpt:
+        return xcpt
+
 
 @app.route('/favicon.ico')
 def favicon():

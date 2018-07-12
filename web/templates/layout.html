@@ -32,6 +32,18 @@
 	</script>
 </head>
 <body class="bg-light text-white">
+{% with messages = get_flashed_messages() %}
+	{% if messages %}
+		{% for message in messages %}
+		<div class="alert alert-danger alert-fixed">
+			<div class="text-center">
+				{{ message }}
+			</div>
+		</div>
+		{% endfor %}
+	{% endif %}
+{% endwith %}
+{% block body %}
 <nav class="navbar navbar-expand-lg fixed-top navbar-dark transparent">
 	<a class="navbar-brand" href="/index">Looper</a>
 	<ul class="navbar-nav mr-auto">
