@@ -21,12 +21,11 @@ app.debug = True
 app.wsgi_app = ProxyFix(app.wsgi_app)
 app.secret_key = 'a3067a6f5bc2b743c88ef8'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///static/db/database.db'
-app.config['LOG_INDEX'] = dict()  # dict
-app.config['TASK_LIST'] = dict()  # dict
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PROJECT_FOLDER'] = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(app.config['PROJECT_FOLDER'], 'tmp')
 app.config['LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'
-app.config['STATUS_CODE'] = {-1:'Failed', 0:'Waiting', 1:'Running', 2:'Finished'}
+app.config['STATUS_CODE'] = {-1: 'Failed', 0: 'Waiting', 1: 'Running', 2: 'Finished'}
 db = SQLAlchemy(app)
 
 
@@ -56,6 +55,11 @@ def create_task():
                 db.session.rollback()
                 print(xcpt)
         return index()
+
+
+@app.route('/register', methods=['POST'])
+def create_user():
+    form = UserForm()
 
 
 @app.route('/favicon.ico')
@@ -111,6 +115,15 @@ def _recursive_log_scan(directory=app.config['LOG_DRIVE']):
 
 # -------------------- FORMS --------------------
 class TaskForm(FlaskForm):
+    file_name = SelectField(
+            'Select file',
+            choices=[(file.name, file.name) for file in db.session.query(File).all()],
+            validators=[DataRequired("PLease select a file")]
+    )
+    submit = SubmitField('Submit')
+
+
+class UserForm(FlaskForm):
     user_name = StringField(
             'NetID',
             validators=[DataRequired("Please enter your username.")]
@@ -119,13 +132,7 @@ class TaskForm(FlaskForm):
             'Password',
             validators=[DataRequired("Please enter your password.")]
     )
-    file_name = SelectField(
-            'Select file',
-            choices=[(file.name, file.name) for file in db.session.query(File).all()],
-            validators=[DataRequired("PLease select a file")]
-    )
-    submit = SubmitField('Submit')
-
+    submit = SubmitField('Register')
 
 class FakeProcess(Process):
     def __init__(self, log, pipe_conn):
