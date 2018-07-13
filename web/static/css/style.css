@@ -1,10 +1,9 @@
 .alert-fixed {
-    position: fixed;
-    top: 0px;
-    left: 0px;
+    top: -14px;
+    left: 0;
     width: 100%;
-    z-index: 999;
-    border-radius: 0px;
+    z-index: 9999;
+    border-radius: 0;
 }
 
 .transparent {
@@ -15,13 +14,17 @@
     background: rgba(0, 0, 0, 0.50);
 }
 
+.table-scroll {
+    height: 680px;
+    overflow: auto;
+}
+
 .form-custom {
     padding: 15px;
     border-radius: 5px;
 }
 
 .dropdown-custom {
-    height: 50px !important;
     overflow: scroll;
 }
 
@@ -44,7 +47,7 @@
 
 .text-limit {
     word-wrap: break-word;
-    max-width: 150px;
+    max-width: 420px;
 }
 
 html, body {
@@ -52,7 +55,6 @@ html, body {
     width: 100%;
     padding: 0px;
     margin: 0px;
-    overflow: hidden;
 }
 
 body {

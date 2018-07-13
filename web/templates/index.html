@@ -3,55 +3,55 @@
 <div class="row">
 	<!--Current Operation Table-->
 	<div class="col-8">
-		<table class="table table-striped table-dark custom-bg-color" style="border-radius: 5px">
-			<h3 class="text-light header-adjust">Current operations</h3>
-			<thead>
-			<tr>
-				<th scope="col">Id</th>
-				<th scope="col">User</th>
-				<th scope="col">Log</th>
-				<th scope="col">Time</th>
-				<th scope="col">Status</th>
-			</tr>
-			</thead>
-			<tbody>
-			{% for task in tasks %}
-			<tr>
-				<th scope="row">{{ task.id }}</th>
-				<td>{{ task[1] }}</td>
-				<td class="text-limit">{{ task[2] }}</td>
-				<td>{{ task[3] }}</td>
-				<td>{{ task[4] }}</td>
-			</tr>
-			{% endfor %}
-			</tbody>
-		</table>
+		<h3 class="text-light header-adjust">Current operations</h3>
+		<div class="table-scroll">
+			<table class="table table-striped table-dark custom-bg-color" style="border-radius: 5px">
+				<thead>
+				<tr>
+					<th scope="col">Id</th>
+					<th scope="col">User</th>
+					<th scope="col">Log</th>
+					<th scope="col">Time</th>
+					<th scope="col">Status</th>
+				</tr>
+				</thead>
+				<tbody>
+				{% for task in tasks %}
+				<tr>
+					<th scope="row">{{ task.id }}</th>
+					<td>{{ task.user.name }}</td>
+					<td class="text-limit">{{ task.file.name }}</td>
+					<td>{{ task.time_created }}</td>
+					<td>{{ task.status }}</td>
+				</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
 	</div>
 	<!--Submit New Task Table-->
 	<div class="col-4">
 		<form method="post" action="/create" id="form-create-task">
 			<h3 class="text-light header-adjust">Submit New</h3>
-			<div class="form-group custom-bg-color form-custom">
-					<select name="filename" class="form-control dropdown-custom" id="fileSelector" required>
-						<option value="" disabled selected hidden>Select log to run.</option>
-						{% for log in logs %}
-						<option value="{{ log }}">{{ log }}</option>
-						{% endfor %}
-					</select>
-					<button type="submit" class="btn btn-dark btn-custom">Submit</button>
+			<div class="custom-bg-color form-custom">
+				{{ form.hidden_tag() }}
+				<div class="form-group">
+					{{ form.user_name.label(class="form-text") }}
+					{{ form.user_name(class="form-control", placeholder="Ex. mjbf4f") }}
+				</div>
+				<div class="form-group">
+					{{ form.user_password.label(class="form-text") }}
+					{{ form.user_password(class="form-control") }}
+				</div>
+				<div class="form-group">
+					{{ form.file_name.label(class="form-text") }}
+					{{ form.file_name(class="form-control dropdown-custom", id="fileSelector") }}
+				</div>
+				<div class="form-group">
+					{{ form.submit(class="btn btn-dark btn-custom") }}
+				</div>
+				<!--<option value="" disabled selected hidden>Select log to run.</option>-->
 			</div>
-			<!--<div class="form-check form-check-inline">-->
-			<!--<input class="form-check-input" type="checkbox" value="meow" id="check1">-->
-			<!--<label class="form-check-label text-light" for="check1">-->
-			<!--Hello Kitty-->
-			<!--</label>-->
-			<!--</div>-->
-			<!--<div class="form-check form-check-inline">-->
-			<!--<input class="form-check-input" type="checkbox" value="woof" id="check2">-->
-			<!--<label class="form-check-label text-light" for="check2">-->
-			<!--Doggy Doggy what now?-->
-			<!--</label>-->
-			<!--</div>-->
 			<div class="form-group">
 			</div>
 		</form>
@@ -63,6 +63,5 @@
 			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit
 			anim id est laborum.</p>
 	</div>
-</div>
 </div>
 {% endblock %}
