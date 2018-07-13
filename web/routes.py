@@ -62,6 +62,12 @@ def create_user():
     form = UserForm()
 
 
+@app.route('/login', methods=['POST'])
+def create_session():
+    form = UserForm()
+
+
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('static/img', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
@@ -133,6 +139,7 @@ class UserForm(FlaskForm):
             validators=[DataRequired("Please enter your password.")]
     )
     submit = SubmitField('Register')
+
 
 class FakeProcess(Process):
     def __init__(self, log, pipe_conn):
