@@ -1,5 +1,6 @@
 .alert-fixed {
-    top: -14px;
+    position: fixed;
+    top: 56px;
     left: 0;
     width: 100%;
     z-index: 9999;
@@ -33,6 +34,7 @@
 }
 
 .header-adjust {
+    margin-top: 10px;
     padding-left: 15px;
 }
 

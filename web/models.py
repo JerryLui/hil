@@ -1,45 +1,48 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
-
-Base = declarative_base()
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 
-class File(Base):
-    __tablename__ = 'File'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
-    path = Column(String(250), nullable=False)
-    tasks = relationship('Task')
-
-    def __repr__(self):
-        return '<File %r>' % self.file_path
+db = SQLAlchemy()
 
 
-class User(Base):
-    __tablename__ = 'User'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(32), unique=True, nullable=False)
-    password = Column(String(32), nullable=False)
-    tasks = relationship('Task')
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32), unique=True, nullable=False)
+    password = db.Column(db.String(54), nullable=False)
+
+    def __init__(self, name, password):
+        super(User, self).__init__(name=name.lower(), password=generate_password_hash(password))
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
 
 
-class Task(Base):
-    __tablename__ = 'Task'
-    id = Column(Integer, primary_key=True)
-    time_created = Column(DateTime, server_default=func.now())
-    time_update = Column(DateTime, onupdate=func.now())
-    status = Column(Integer, nullable=False)
-    file_id = Column(Integer, ForeignKey('File.id'), nullable=False)
-    file = relationship('File', foreign_keys=file_id)
-    user_id = Column(Integer, ForeignKey('User.id'), nullable=False)
-    user = relationship('User', foreign_keys=user_id)
+class File(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(250), nullable=False)
+    path = db.Column(db.String(250), nullable=False, unique=True)
+
+
+class Status(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32), unique=True, nullable=False)
+
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    time_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    time_update = db.Column(db.DateTime, onupdate=datetime.utcnow, nullable=False)
+    status_id = db.Column(db.Integer, db.ForeignKey('status.id'), nullable=False)
+    status = db.relationship('Status', backref=db.backref('tasks', lazy=True))
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id'), nullable=False)
+    file = db.relationship('File', backref=db.backref('tasks', lazy=True))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('tasks', lazy=True))
+
+    def __init__(self, status_id, file_id, user_id):
+        super(Task, self).__init__(status_id=status_id, file_id=file_id, user_id=user_id)
 
     def __repr__(self):
         return '<Task id:%r status:%r>' % (self.id, self.status)
 
-
-engine = create_engine('sqlite:///static/db/database.db')
-Base.metadata.create_all(engine)

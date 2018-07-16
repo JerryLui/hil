@@ -1,67 +1,97 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="row">
-	<!--Current Operation Table-->
-	<div class="col-8">
-		<h3 class="text-light header-adjust">Current operations</h3>
-		<div class="table-scroll">
-			<table class="table table-striped table-dark custom-bg-color" style="border-radius: 5px">
-				<thead>
-				<tr>
-					<th scope="col">Id</th>
-					<th scope="col">User</th>
-					<th scope="col">Log</th>
-					<th scope="col">Time</th>
-					<th scope="col">Status</th>
-				</tr>
-				</thead>
-				<tbody>
-				{% for task in tasks %}
-				<tr>
-					<th scope="row">{{ task.id }}</th>
-					<td>{{ task.user.name }}</td>
-					<td class="text-limit">{{ task.file.name }}</td>
-					<td>{{ task.time_created }}</td>
-					<td>{{ task.status }}</td>
-				</tr>
-				{% endfor %}
-				</tbody>
-			</table>
+	<div class="row">
+		<!--Current Operation Table-->
+		<div class="col-8">
+			<h3 class="text-light header-adjust">Current operations</h3>
+			<div class="table-scroll">
+				<table class="table table-striped table-dark custom-bg-color" style="border-radius: 5px">
+					<thead>
+					<tr>
+						<th scope="col">Id</th>
+						<th scope="col">User</th>
+						<th scope="col">Log</th>
+						<th scope="col">Time</th>
+						<th scope="col">Status</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% for task in tasks %}
+						<tr>
+							<th scope="row">{{ task.id }}</th>
+							<td>{{ task.user.name }}</td>
+							<td class="text-limit">{{ task.file.name }}</td>
+							<td>{{ task.time_created }}</td>
+							<td>{{ task.status }}</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<!--Submit New Task Table-->
+		<div class="col-4">
+			{% if session['user_name'] %}
+				<form method="post" action="/create" id="form-task">
+					<h3 class="text-light header-adjust">Create new task</h3>
+					<div class="custom-bg-color form-custom">
+						{{ form.hidden_tag() }}
+						<div class="form-group">
+							{{ form.file_name.label(class="form-text") }}
+							{{ form.file_name(class="form-control dropdown-custom", id="fileSelector") }}
+						</div>
+						<div class="form-group">
+							{{ form.submit(class="btn btn-dark btn-custom") }}
+						</div>
+						<!--<option value="" disabled selected hidden>Select log to run.</option>-->
+					</div>
+				</form>
+			{% else %}
+				<form method="post" action="/login" id="form-login">
+					<h3 class="header-adjust">Login</h3>
+					<div class="custom-bg-color form-custom">
+						{{ form[0].hidden_tag() }}
+						<div class="form-group">
+							{{ form[0].user_name.label(class="form-text") }}
+							{{ form[0].user_name(class="form-control", placeholder="Ex. mjbf4f") }}
+						</div>
+						<div class="form-group">
+							{{ form[0].user_password.label(class="form-text") }}
+							{{ form[0].user_password(class="form-control") }}
+						</div>
+						<div class="form-group">
+							{{ form[0].submit(class="btn btn-dark btn-custom") }}
+						</div>
+					</div>
+				</form>
+				<form method="post" action="/register" id="form-register">
+					<h3 class="header-adjust">Register</h3>
+					<div class="custom-bg-color form-custom">
+						{{ form[1].hidden_tag() }}
+						<div class="form-group">
+							{{ form[1].user_name.label(class="form-text") }}
+							{{ form[1].user_name(class="form-control", placeholder="Ex. mjbf4f") }}
+						</div>
+						<div class="form-group">
+							{{ form[1].user_password.label(class="form-text") }}
+							{{ form[1].user_password(class="form-control") }}
+						</div>
+						<div class="form-group">
+							{{ form[1].submit(class="btn btn-dark btn-custom") }}
+						</div>
+					</div>
+				</form>
+			{% endif %}
+		</div>
+		<div class="text-light" style="margin-top:15px">
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+				dolore
+				magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+				commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+				fugiat
+				nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+				mollit
+				anim id est laborum.</p>
 		</div>
 	</div>
-	<!--Submit New Task Table-->
-	<div class="col-4">
-		<form method="post" action="/create" id="form-create-task">
-			<h3 class="text-light header-adjust">Submit New</h3>
-			<div class="custom-bg-color form-custom">
-				{{ form.hidden_tag() }}
-				<div class="form-group">
-					{{ form.user_name.label(class="form-text") }}
-					{{ form.user_name(class="form-control", placeholder="Ex. mjbf4f") }}
-				</div>
-				<div class="form-group">
-					{{ form.user_password.label(class="form-text") }}
-					{{ form.user_password(class="form-control") }}
-				</div>
-				<div class="form-group">
-					{{ form.file_name.label(class="form-text") }}
-					{{ form.file_name(class="form-control dropdown-custom", id="fileSelector") }}
-				</div>
-				<div class="form-group">
-					{{ form.submit(class="btn btn-dark btn-custom") }}
-				</div>
-				<!--<option value="" disabled selected hidden>Select log to run.</option>-->
-			</div>
-			<div class="form-group">
-			</div>
-		</form>
-	</div>
-	<div class="text-light" style="margin-top:15px">
-		<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-			magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-			commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-			nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit
-			anim id est laborum.</p>
-	</div>
-</div>
 {% endblock %}
