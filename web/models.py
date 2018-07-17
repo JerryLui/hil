@@ -17,16 +17,24 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
+    def __repr__(self):
+        return '<User: %r>' % self.name
+
 
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
     path = db.Column(db.String(250), nullable=False, unique=True)
 
+    def __repr__(self):
+        return '<File: %r>' % self.path
 
 class Status(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), unique=True, nullable=False)
+
+    def __repr__(self):
+        return '<Status: %r>' % self.name
 
 
 class Task(db.Model):

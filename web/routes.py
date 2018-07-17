@@ -17,8 +17,6 @@ from forms import TaskForm, RegisterForm, LoginForm
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///static/db/database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
-app.app_context().push()
 
 app.wsgi_app = ProxyFix(app.wsgi_app)
 app.secret_key = 'a3067a6f5bc2b743c88ef8'
@@ -27,16 +25,20 @@ app.config['UPLOAD_FOLDER'] = os.path.join(app.config['PROJECT_FOLDER'], 'tmp')
 app.config['LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'
 app.config['STATUS_CODE'] = {-1: 'Failed', 0: 'Waiting', 1: 'Running', 2: 'Finished'}
 
+db.init_app(app)
+app.app_context().push()
+
 
 # -------------------- FLASK --------------------
 @app.route('/', methods=['GET'])
 @app.route('/index', methods=['GET'])
 def index():
     if session.get('user_name', 0):
-        form = TaskForm()
+        form = TaskForm(File.query.all())
+        print('rednering form')
     else:
-        form = [LoginForm(), RegisterForm()]
-    return render_template('index.html', form=form, tasks=[])
+        form = (LoginForm(prefix='login'), RegisterForm(prefix='register'))
+    return render_template('index.html', form=form, tasks=Task.query.all())
 
 
 @app.route('/create', methods=['POST'])
@@ -66,7 +68,7 @@ def create_user():
     if not form.validate():
         flash('Invalid input.', 'warning')
     else:
-        user = get_or_insert(User, name=form.user_name.data, password=form.user_password.data)
+        user = db_insert_or_get(User, name=form.user_name.data, password=form.user_password.data)
         db.session.commit()
 
         flash('User created successfully.', 'success')
@@ -80,7 +82,7 @@ def create_login():
     form = LoginForm()
 
     if not form.validate():
-        flash('Invalid credentials.', 'warning')
+        flash('Invalid input.', 'warning')
     else:
         user_name = form.user_name.data
         user_password = form.user_password.data
@@ -125,19 +127,23 @@ def favicon():
 
 
 # -------------------- DATABASE --------------------
-def get_or_insert(model, defaults=None, **kwargs):
+def db_insert_or_get(model, defaults=None, **kwargs):
+    """
+    Gets or inserts model into db wether or not if it exists or not.
+    :returns : (model, bool)
+    """
     instance = model.query.filter_by(**kwargs).first()
     if instance:
-        return instance
+        return instance, True
     else:
         kwargs.update(defaults or {})
         instance = model(**kwargs)
         db.session.add(instance)
-        return instance
+        return instance, False
 
 
 def _populate_table_file():
-    [db.session.merge(File(name=log.name, path=log.path)) for log in _recursive_log_scan()]
+    [db_insert_or_get(File, name=log.name, path=log.path) for log in _recursive_log_scan()]
     db.session.commit()
 
 
@@ -176,6 +182,7 @@ class FakeProcess(Process):
 
 # -------------------- MAIN --------------------
 if __name__ == '__main__':
+    _populate_table_file()
     db.create_all()
-    app.run()
+    app.run(debug=True)
     # app.run(host='10.239.125.100', port=5001)
