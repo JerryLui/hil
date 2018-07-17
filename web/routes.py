@@ -128,6 +128,10 @@ def favicon():
     return send_from_directory('static/img', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
+@app.errorhandler(404)
+def error(error):
+    return render_template('error.html', error=error)
+
 # -------------------- DATABASE --------------------
 def db_insert_or_get(model, defaults=None, **kwargs):
     """

@@ -40,8 +40,8 @@ class Status(db.Model):
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    time_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    time_update = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    time_created = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    time_update = db.Column(db.DateTime, onupdate=datetime.now)
     status_id = db.Column(db.Integer, db.ForeignKey('status.id'), nullable=False)
     status = db.relationship('Status', backref=db.backref('tasks', lazy=True))
     file_id = db.Column(db.Integer, db.ForeignKey('file.id'), nullable=False)

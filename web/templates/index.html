@@ -21,8 +21,8 @@
 							<th scope="row">{{ task.id }}</th>
 							<td>{{ task.user.name }}</td>
 							<td class="text-limit">{{ task.file.name }}</td>
-							<td>{{ task.time_created }}</td>
-							<td>{{ task.status }}</td>
+							<td>{{ task.time_created.strftime('%Y-%d-%m %H:%M') }}</td>
+							<td>{{ task.status.name }}</td>
 						</tr>
 					{% endfor %}
 					</tbody>
@@ -90,7 +90,7 @@
 						<div class="form-group">
 							{{ form[1].password.label(class="form-text") }}
 							{{ form[1].password(class="form-control") }}
-							{% if form[1].password.errors %}
+							{% if form[1].errors %}
 								{% for error in form[1].name.errors %}
 									<small class="text-muted">{{ error }}</small>
 								{% endfor %}
