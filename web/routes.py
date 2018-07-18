@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_from_directory, flash, redirect, session, url_for, get_flashed_messages
+from flask import Flask, render_template, request, send_from_directory, flash, session, redirect, get_flashed_messages, url_for
 from multiprocessing import Pipe, Process
 from werkzeug.utils import secure_filename
 from werkzeug.contrib.fixers import ProxyFix
@@ -29,17 +29,48 @@ db.init_app(app)
 app.app_context().push()
 
 
-# -------------------- FLASK --------------------
+# -------------------- ROUTES --------------------
 @app.route('/', methods=['GET'])
 @app.route('/index', methods=['GET'])
-def index():
-    if session.get('user_name', 0):
+def page_index():
+    if session.get('user_name'):
         form = TaskForm([(file.name, file.name) for file in File.query.all()])
     else:
         form = (UserForm(prefix='login'), UserForm(prefix='register'))
-    return render_template('index.html', form=form, tasks=Task.query.all())
+    return render_template('index.html',
+                           form=form,
+                           tasks=Task.query.order_by(Task.time_created).all(),
+                           active='index'
+                          )
 
 
+@app.route('/active')
+def page_active():
+    return render_template('active.html', active='active', tasks=Task.query.order_by(Task.time_created).all())
+
+
+@app.route('/about')
+def page_info():
+    return render_template('about.html', active='about')
+
+
+@app.route('/home')
+def page_home():
+    if session.get('user_name'):
+        return render_template('home.html', tasks=User.query.filter_by(name=session['user_name']).first().tasks)
+    else:
+        return redirect(url_for('page_index'))
+
+
+@app.route('/task')
+def page_task(id):
+    if session.get('user_name'):
+        return render_template('task.html', active='task', task=Task.query.filter_by(id=id).first())
+    else:
+        return redirect(url_for('page_index'))
+
+
+# -------------------- OPERATIONS --------------------
 @app.route('/create', methods=['POST'])
 def create_task():
     form = TaskForm([(file.name, file.name) for file in File.query.all()])
@@ -57,7 +88,7 @@ def create_task():
         except Exception as xcpt:
             db.session.rollback()
             print(xcpt)
-    return index()
+    return redirect(url_for('page_index'))
 
 
 @app.route('/register', methods=['POST'])
@@ -76,7 +107,7 @@ def create_user():
             session['user_name'] = user.name
             flash('User created successfully.', 'success')
 
-    return index()
+    return redirect(url_for('page_index'))
 
 
 @app.route('/login', methods=['POST'])
@@ -95,13 +126,13 @@ def create_login():
             flash('Login successful.', 'success')
         else:
             flash('Incorrect login credentials.', 'warning')
-    return index()
+    return redirect(url_for('page_index'))
 
 
 @app.route('/logout')
 def logout():
     session.pop('user_name', None)
-    return index()
+    return redirect(url_for('page_index'))
 
 
 @app.route('/upload', methods=['POST', 'GET'])
@@ -109,16 +140,16 @@ def upload_file():
     if request.method == 'POST':
         if 'file' not in request.files:
             flash('No file part', 'warning')
-            return index()
+            return page_index()
 
         file = request.files['file']
         if file.filename == '':
             flash('No select file', 'warning')
-            return index()
+            return page_index()
         if file:
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER']))
-            return index()
+            return page_index()
     elif request.method == 'GET':
         return render_template('upload.html')
 
@@ -129,6 +160,7 @@ def favicon():
 
 
 @app.errorhandler(404)
+@app.errorhandler(405)
 def error(error):
     return render_template('error.html', error=error)
 
@@ -136,7 +168,8 @@ def error(error):
 def db_insert_or_get(model, defaults=None, **kwargs):
     """
     Gets or inserts model into db wether or not if it exists or not.
-    :returns : (model, bool)
+    :rtype: db.Model
+    :returns : (db.Model, bool)
     """
     instance = model.query.filter_by(**kwargs).first()
     if instance:

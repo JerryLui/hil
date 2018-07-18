@@ -6,8 +6,7 @@
 	<title>Looper</title>
 
 	<!--Bootstrap stylesheet-->
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
-		  integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 
 	<!--Custom stylesheet-->
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
@@ -42,21 +41,21 @@
 <nav class="navbar navbar-expand-lg fixed-top navbar-dark transparent">
 	<a class="navbar-brand" href="/index">Looper</a>
 	<ul class="navbar-nav mr-auto">
-		<li class="nav-item active">
-			<a class="nav-link" href="/index">Home <span class="sr-only">(current)</span></a>
+		<li class="nav-item{% if active == "index" %} active{% endif %}">
+			<a class="nav-link" href="/index">Index</a>
 		</li>
-		<li class="nav-item">
-			<a class="nav-link" href="/history">History</a>
+		<li class="nav-item{% if active == 'active' %} active{% endif %}">
+			<a class="nav-link" href="/active" >Sessions</a>
 		</li>
-		<li	class="nav-item">
-			<a class="nav-link" href="/info">Info</a>
+		<li class="nav-item{% if active == 'about' %} active{% endif %}">
+			<a class="nav-link" href="/about">About</a>
 		</li>
 	</ul>
 	{% if session['user_name'] %}
 		<div class="my-2 my-lg-0 mx-4">
 			<ul class="navbar-nav mr-auto">
 				<li class="nav-item active">
-					<a class="nav-link" href="/home"><strong>>{{ session['user_name'] }}</strong></a>
+					<a class="nav-link" href="/home"><strong>{{ session['user_name'] }}</strong></a>
 				</li>
 				<li class="nav-item">
 					<a class="nav-link" href="/logout">Logout</a>
@@ -69,10 +68,8 @@
 			 alt="">
 	</div>
 </nav>
-<div class="container" style="margin-top:30px">
-	{% block content %}
-	{% endblock %}
-</div>
+{% block content %}
+{% endblock %}
 {% block script %}
 {% endblock %}
 </body>
