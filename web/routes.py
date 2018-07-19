@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, send_from_directory, flash, session, redirect, get_flashed_messages, url_for
-from flask_admin import Admin, BaseView
+from flask import Flask, render_template, send_from_directory, flash, session, redirect, url_for, request
+from flask_admin import Admin, BaseView, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from multiprocessing import Pipe, Process
 from werkzeug.utils import secure_filename
@@ -13,7 +13,7 @@ import sys
 # Package specific imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from models import db, Task, File, User, Status
-from forms import TaskForm, UserForm
+from forms import TaskForm, UserForm, FileForm
 
 # -------------------- APPLICATION CONFIGURATION --------------------
 app = Flask(__name__)
@@ -23,9 +23,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.wsgi_app = ProxyFix(app.wsgi_app)
 app.secret_key = 'a3067a6f5bc2b743c88ef8'
 app.config['PROJECT_FOLDER'] = os.path.dirname(os.path.abspath(__file__))
-app.config['UPLOAD_FOLDER'] = os.path.join(app.config['PROJECT_FOLDER'], 'tmp')
+app.config['UPLOAD_FOLDER'] = os.path.join(app.config['PROJECT_FOLDER'], 'tmp', 'uploads')
 app.config['LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'
-app.config['STATUS_CODE'] = {-1: 'Failed', 0: 'Waiting', 1: 'Running', 2: 'Finished'}
 
 db.init_app(app)
 app.app_context().push()
@@ -34,16 +33,21 @@ app.app_context().push()
 # -------------------- ROUTES --------------------
 @app.route('/', methods=['GET'])
 @app.route('/index', methods=['GET'])
-def page_index():
+def page_index(form=None):
     if session.get('user_name'):
         form = TaskForm([(file.name, file.name) for file in File.query.all()])
     else:
-        form = (UserForm(prefix='login'), UserForm(prefix='register'))
+        if form:
+            if form._prefix == 'login-':
+                form = (form, UserForm(prefix='register'))
+            elif form._prefix == 'register-':
+                form = (UserForm(prefix='login'), form)
+        else:
+            form = (UserForm(prefix='login'), UserForm(prefix='register'))
     return render_template('index.html',
                            form=form,
                            tasks=Task.query.order_by(Task.time_created).all(),
-                           active='index'
-                          )
+                           active='index')
 
 
 @app.route('/active')
@@ -72,6 +76,12 @@ def page_task(id):
         return redirect(url_for('page_index'))
 
 
+@app.errorhandler(404)
+@app.errorhandler(405)
+def error(msg):
+    return render_template('error.html', error=msg)
+
+
 # -------------------- OPERATIONS --------------------
 @app.route('/create', methods=['POST'])
 def create_task():
@@ -90,7 +100,7 @@ def create_task():
         except Exception as xcpt:
             db.session.rollback()
             print(xcpt)
-    return redirect(url_for('page_index'))
+    return page_index(form)
 
 
 @app.route('/register', methods=['POST'])
@@ -109,11 +119,11 @@ def create_user():
             session['user_name'] = user.name
             flash('User created successfully.', 'success')
 
-    return redirect(url_for('page_index'))
+    return page_index(form)
 
 
 @app.route('/login', methods=['POST'])
-def create_login():
+def create_session():
     form = UserForm(prefix='login')
 
     if not form.validate():
@@ -128,7 +138,7 @@ def create_login():
             flash('Login successful.', 'success')
         else:
             flash('Incorrect login credentials.', 'warning')
-    return redirect(url_for('page_index'))
+    return page_index(form)
 
 
 @app.route('/logout')
@@ -137,34 +147,10 @@ def logout():
     return redirect(url_for('page_index'))
 
 
-@app.route('/upload', methods=['POST', 'GET'])
-def upload_file():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file part', 'warning')
-            return page_index()
-
-        file = request.files['file']
-        if file.filename == '':
-            flash('No select file', 'warning')
-            return page_index()
-        if file:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER']))
-            return page_index()
-    elif request.method == 'GET':
-        return render_template('upload.html')
-
-
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('static/img', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-
-@app.errorhandler(404)
-@app.errorhandler(405)
-def error(msg):
-    return render_template('error.html', error=msg)
 
 
 # -------------------- DATABASE --------------------
@@ -215,6 +201,34 @@ class SessionModelView(ModelView):
         return redirect(url_for('page_index'))
 
 
+class AdminHomeView(AdminIndexView):
+    """ Admin frontpage view. """
+    @expose('/')
+    def index(self):
+        if session.get('user_name') == 'admin':
+            return self.render('admin/index.html')
+        else:
+            return redirect(url_for('page_index'))
+
+
+class UploadFileView(BaseView):
+    @expose('/')
+    def index(self):
+        if session.get('user_name'):
+            form = FileForm()
+            if request.method == 'POST':
+                if form.validate():
+                    file = form.file.data
+                    file_name = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
+                    flash('File uploaded successfully.', 'success')
+                else:
+                    flash('Invalid file!', 'warning')
+            return self.render('admin/upload.html', form=form)
+        else:
+            return redirect(url_for('page_index'))
+
+
 # -------------------- TEST ENV --------------------
 class FakeProcess(Process):
     def __init__(self, log, pipe_conn):
@@ -242,11 +256,12 @@ if __name__ == '__main__':
     _populate_table_file()
     _populate_table_status()
 
-    admin = Admin(template_mode='bootstrap3')
+    admin = Admin(index_view=AdminHomeView(), template_mode='bootstrap3')
     admin.add_views(SessionModelView(User, db.session),
                     SessionModelView(File, db.session),
                     SessionModelView(Task, db.session),
                     SessionModelView(Status, db.session))
+    admin.add_view(UploadFileView('Upload', url='/admin/upload'))
     admin.init_app(app)
 
     app.run(host='10.239.125.100', port=5001, debug=True)

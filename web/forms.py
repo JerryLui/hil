@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
 from wtforms import StringField, SelectField, SubmitField, PasswordField
-from wtforms.validators import InputRequired
+from wtforms.validators import InputRequired, Length
 
 
 class TaskForm(FlaskForm):
@@ -23,7 +23,8 @@ class UserForm(FlaskForm):
     )
     password = PasswordField(
             'Password',
-            validators=[InputRequired("Please enter your password.")]
+            validators=[InputRequired("Please enter your password."),
+                        Length(min=6, message="Minimum 6 characters required for password.")]
     )
     submit = SubmitField('Submit')
 
@@ -33,3 +34,4 @@ class UserForm(FlaskForm):
 
 class FileForm(FlaskForm):
     file = FileField(validators=[FileRequired("Please select a filed.")])
+    submit = SubmitField('Upload')
