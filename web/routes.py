@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, send_from_directory, flash, session, redirect, get_flashed_messages, url_for
+from flask_admin import Admin, BaseView
+from flask_admin.contrib.sqla import ModelView
 from multiprocessing import Pipe, Process
 from werkzeug.utils import secure_filename
 from werkzeug.contrib.fixers import ProxyFix
@@ -161,8 +163,9 @@ def favicon():
 
 @app.errorhandler(404)
 @app.errorhandler(405)
-def error(error):
-    return render_template('error.html', error=error)
+def error(msg):
+    return render_template('error.html', error=msg)
+
 
 # -------------------- DATABASE --------------------
 def db_insert_or_get(model, defaults=None, **kwargs):
@@ -202,6 +205,15 @@ def _recursive_log_scan(directory=app.config['LOG_DRIVE']):
 
 # -------------------- DB FILE --------------------
 
+# -------------------- ADMIN --------------------
+class SessionModelView(ModelView):
+    """ Authenticates user for acces admin page. """
+    def is_accessible(self):
+        return session.get('user_name') == 'admin'
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('page_index'))
+
 
 # -------------------- TEST ENV --------------------
 class FakeProcess(Process):
@@ -229,4 +241,12 @@ if __name__ == '__main__':
     db.create_all()
     _populate_table_file()
     _populate_table_status()
+
+    admin = Admin(template_mode='bootstrap3')
+    admin.add_views(SessionModelView(User, db.session),
+                    SessionModelView(File, db.session),
+                    SessionModelView(Task, db.session),
+                    SessionModelView(Status, db.session))
+    admin.init_app(app)
+
     app.run(host='10.239.125.100', port=5001, debug=True)
