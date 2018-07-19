@@ -46,7 +46,7 @@ class Task(db.Model):
     status = db.relationship('Status', backref=db.backref('tasks', lazy=True))
     file_id = db.Column(db.Integer, db.ForeignKey('file.id', ondelete='SET NULL'), nullable=True)
     file = db.relationship('File', backref=db.backref('tasks', lazy=True))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=Tru)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     user = db.relationship('User', backref=db.backref('tasks', lazy=True))
 
     def __init__(self, status_id, file_id, user_id):
