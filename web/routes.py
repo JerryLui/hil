@@ -211,22 +211,22 @@ class AdminHomeView(AdminIndexView):
             return redirect(url_for('page_index'))
 
 
-class UploadFileView(BaseView):
-    @expose('/')
-    def index(self):
-        if session.get('user_name'):
-            form = FileForm()
-            if request.method == 'POST':
-                if form.validate():
-                    file = form.file.data
-                    file_name = secure_filename(file.filename)
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
-                    flash('File uploaded successfully.', 'success')
-                else:
-                    flash('Invalid file!', 'warning')
-            return self.render('admin/upload.html', form=form)
-        else:
-            return redirect(url_for('page_index'))
+# class UploadFileView(BaseView):
+#     @expose('/', methods=['POST', 'GET'])
+#     def index(self):
+#         if session.get('user_name'):
+#             form = FileForm()
+#             if request.method == 'POST':
+#                 if form.validate():
+#                     file = form.file.data
+#                     file_name = secure_filename(file.filename)
+#                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
+#                     flash('File uploaded successfully.', 'success')
+#                 else:
+#                     flash('Invalid file!', 'warning')
+#             return self.render('admin/upload.html', form=form)
+#         else:
+#             return redirect(url_for('page_index'))
 
 
 # -------------------- TEST ENV --------------------
@@ -261,7 +261,6 @@ if __name__ == '__main__':
                     SessionModelView(File, db.session),
                     SessionModelView(Task, db.session),
                     SessionModelView(Status, db.session))
-    admin.add_view(UploadFileView('Upload', url='/admin/upload'))
     admin.init_app(app)
 
     app.run(host='10.239.125.100', port=5001, debug=True)
