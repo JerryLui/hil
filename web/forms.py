@@ -30,6 +30,8 @@ class UserForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(UserForm, self).__init__(*args, **kwargs)
+        if kwargs.get('prefix'):
+            self.submit.label.text = kwargs['prefix'].title()
 
 
 class FileForm(FlaskForm):

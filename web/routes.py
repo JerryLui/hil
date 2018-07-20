@@ -1,12 +1,9 @@
 from flask import Flask, render_template, send_from_directory, flash, session, redirect, url_for, request
-from flask_admin import Admin, BaseView, AdminIndexView, expose
+from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
-from multiprocessing import Pipe, Process
 from werkzeug.utils import secure_filename
 from werkzeug.contrib.fixers import ProxyFix
 
-import time
-import random
 import os
 import sys
 
@@ -152,7 +149,6 @@ def favicon():
     return send_from_directory('static/img', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
-
 # -------------------- DATABASE --------------------
 def db_insert_or_get(model, defaults=None, **kwargs):
     """
@@ -227,27 +223,6 @@ class AdminHomeView(AdminIndexView):
 #             return self.render('admin/upload.html', form=form)
 #         else:
 #             return redirect(url_for('page_index'))
-
-
-# -------------------- TEST ENV --------------------
-class FakeProcess(Process):
-    def __init__(self, log, pipe_conn):
-        self.log = log
-        self.pipe_conn = pipe_conn
-        super().__init__()
-
-    def run(self):
-        self.pipe_conn.send(1)
-        time.sleep(random.randint(5, 10))
-
-        self.pipe_conn.send(2)
-        time.sleep(random.randint(7, 13))
-
-        if random.randint(0, 3):
-            self.pipe_conn.send(-1)
-        else:
-            self.pipe_conn.send(0)
-        return
 
 
 # -------------------- MAIN --------------------
