@@ -15,10 +15,6 @@
     background: rgba(0, 0, 0, 0.78);
 }
 
-.custom-button {
-    width: 80px;
-}
-
 .table-medium {
     height: 700px;
     margin: 0;
@@ -43,6 +39,16 @@
 .btn-custom {
     margin-top: 10px;
     width: 100px;
+}
+
+.link-custom-lg {
+    color: #f84018;
+    text-decoration: none;
+    margin-top: 10px;
+}
+
+a:link, a:hover, a:active, a:visited {
+    text-decoration: none !important;
 }
 
 .header-adjust {

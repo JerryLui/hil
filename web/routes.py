@@ -1,16 +1,20 @@
-from flask import Flask, render_template, send_from_directory, flash, session, redirect, url_for, request
+from flask import Flask, render_template, send_from_directory, flash, session, redirect, url_for, request, jsonify
 from flask_admin import Admin, BaseView, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.utils import secure_filename
 from werkzeug.contrib.fixers import ProxyFix
+from multiprocessing import Lock, Process, Pipe
 
 import os
 import sys
+import time
+import random
 
 # Package specific imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from models import db, Task, File, User, Status
 from forms import TaskForm, UserForm, FileForm
+from operations import FakeProcess
 
 # -------------------- APPLICATION CONFIGURATION --------------------
 app = Flask(__name__)
@@ -23,6 +27,11 @@ app.config['PROJECT_FOLDER'] = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(app.config['PROJECT_FOLDER'], 'tmp', 'uploads')
 app.config['LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'
 
+app.config['OPS_LOCK'] = Lock()
+app.config['OPS_PIPE_PARENT'] = dict()
+app.config['OPS_PIPE_CHILD'] = dict()
+app.config['OPS_PROCESS'] = dict()
+
 db.init_app(app)
 app.app_context().push()
 
@@ -34,7 +43,8 @@ def page_index(form=None):
     if session.get('user_name'):
         form = TaskForm([(file.name, file.name) for file in File.query.all()])
     else:
-        if form:
+        # Render forms for registration/login if no session
+        if form:    # Enables flash messages when called by another function
             if form._prefix == 'login-':
                 form = (form, UserForm(prefix='register'))
             elif form._prefix == 'register-':
@@ -88,16 +98,27 @@ def create_task():
         flash('Invalid options!', 'warning')
     else:
         try:
+            # Create new task with user and file and submit it to DB
             user = db.session.query(User).filter_by(name=session['user_name']).first()
             file = db.session.query(File).filter_by(name=form.file_name.data).first()
             new_task = Task(status_id=1, file_id=file.id, user_id=user.id)
             db.session.add(new_task)
             db.session.commit()
             flash('Task created!', 'success')
+
+            # Start new process
+
+            app.config['OPS_PIPE_PARENT'][new_task.id], app.config['OPS_PIPE_CHILD'][new_task.id] = Pipe(duplex=False)
+            app.config['OPS_PROCESS'][new_task.id] = FakeProcess(new_task.file.path,
+                                                                 new_task.id,
+                                                                 app.config['OPS_LOCK'],
+                                                                 app.config['OPS_PIPE_CHILD'][new_task.id])
+            app.config['OPS_PROCESS'][new_task.id].start()
+
         except Exception as xcpt:
             db.session.rollback()
-            print(xcpt)
-    return page_index(form)
+            flash(xcpt, 'danger')
+    return page_index()
 
 
 @app.route('/register', methods=['POST'])
@@ -136,6 +157,13 @@ def create_session():
         else:
             flash('Incorrect login credentials.', 'warning')
     return page_index(form)
+
+
+@app.route('/update/db')
+def db_update_files():
+    """ Implement better way of detecting changes in file storage. """
+    _populate_table_file()
+    return redirect(url_for('page_index'))
 
 
 @app.route('/logout')
@@ -185,8 +213,6 @@ def _recursive_log_scan(directory=app.config['LOG_DRIVE']):
             yield entry
 
 
-# -------------------- DB FILE --------------------
-
 # -------------------- ADMIN --------------------
 class SessionModelView(ModelView):
     """ Authenticates user for acces admin page. """
@@ -207,22 +233,22 @@ class AdminHomeView(AdminIndexView):
             return redirect(url_for('page_index'))
 
 
-# class UploadFileView(BaseView):
-#     @expose('/', methods=['POST', 'GET'])
-#     def index(self):
-#         if session.get('user_name'):
-#             form = FileForm()
-#             if request.method == 'POST':
-#                 if form.validate():
-#                     file = form.file.data
-#                     file_name = secure_filename(file.filename)
-#                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
-#                     flash('File uploaded successfully.', 'success')
-#                 else:
-#                     flash('Invalid file!', 'warning')
-#             return self.render('admin/upload.html', form=form)
-#         else:
-#             return redirect(url_for('page_index'))
+class UploadFileView(BaseView):
+    @expose('/', methods=['POST', 'GET'])
+    def index(self):
+        if session.get('user_name'):
+            form = FileForm()
+            if request.method == 'POST':
+                if form.validate():
+                    file = form.file.data
+                    file_name = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
+                    flash('File uploaded successfully.', 'success')
+                else:
+                    flash('Invalid file!', 'warning')
+            return self.render('admin/upload.html', form=form)
+        else:
+            return redirect(url_for('page_index'))
 
 
 # -------------------- MAIN --------------------

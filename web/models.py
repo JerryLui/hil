@@ -43,11 +43,11 @@ class Task(db.Model):
     time_created = db.Column(db.DateTime, default=datetime.now, nullable=False)
     time_update = db.Column(db.DateTime, onupdate=datetime.now)
     status_id = db.Column(db.Integer, db.ForeignKey('status.id', ondelete='SET NULL'), nullable=True)
-    status = db.relationship('Status', backref=db.backref('tasks', lazy=True))
+    status = db.relationship('Status', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
     file_id = db.Column(db.Integer, db.ForeignKey('file.id', ondelete='SET NULL'), nullable=True)
-    file = db.relationship('File', backref=db.backref('tasks', lazy=True))
+    file = db.relationship('File', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
-    user = db.relationship('User', backref=db.backref('tasks', lazy=True))
+    user = db.relationship('User', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
 
     def __init__(self, status_id, file_id, user_id):
         super(Task, self).__init__(status_id=status_id, file_id=file_id, user_id=user_id)

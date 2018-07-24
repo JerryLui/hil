@@ -19,17 +19,17 @@
 						<tbody>
 						{% for task in tasks %}
 							<a href="/task/{{ task.id }}">
-							<tr>
-								<th scope="row">{{ task.id }}</th>
-								{% if task.user.name %}
-									<td>{{ task.user.name }}</td>
-								{% else %}
-									<td>(deleted)</td>
-								{% endif %}
-								<td class="text-limit">{{ task.file.name }}</td>
-								<td>{{ task.time_created.strftime('%y-%d-%m %H:%M') }}</td>
-								<td>{{ task.status.name }}</td>
-							</tr>
+								<tr>
+									<th scope="row">{{ task.id }}</th>
+									{% if task.user.name %}
+										<td>{{ task.user.name }}</td>
+									{% else %}
+										<td>(deleted)</td>
+									{% endif %}
+									<td class="text-limit">{{ task.file.name }}</td>
+									<td>{{ task.time_created.strftime('%y-%d-%m %H:%M') }}</td>
+									<td>{{ task.status.name }}</td>
+								</tr>
 							</a>
 						{% endfor %}
 						</tbody>
@@ -49,6 +49,8 @@
 							</div>
 							<div class="form-group">
 								{{ form.submit(class="btn btn-dark btn-custom") }}
+								<a href="{{ url_for('db_update_files') }}"
+								   class="btn btn-link link-custom-lg float-right">Update List</a>
 							</div>
 							<!--<option value="" disabled selected hidden>Select log to run.</option>-->
 						</div>
