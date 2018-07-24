@@ -1,5 +1,5 @@
 from flask import Flask, render_template, send_from_directory, flash, session, redirect, url_for, request
-from flask_admin import Admin, AdminIndexView, expose
+from flask_admin import Admin, BaseView, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.utils import secure_filename
 from werkzeug.contrib.fixers import ProxyFix
@@ -65,7 +65,7 @@ def page_home():
         return redirect(url_for('page_index'))
 
 
-@app.route('/task')
+@app.route('/task/<int:id>')
 def page_task(id):
     if session.get('user_name'):
         return render_template('task.html', active='task', task=Task.query.filter_by(id=id).first())
