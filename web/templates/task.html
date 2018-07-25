@@ -1,4 +1,33 @@
 {% extends "layout.html" %}
 {% block content %}
-
+	<div class="container" style="margin-top: 80px;">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="card custom-bg-color">
+					<div class="card-body">
+						<h3 class="card-title">Task: {{ task.id }}</h3>
+						<p class="card-text">
+							<strong>Filename:</strong> {{ task.file.name }}<br>
+							<strong>Status:</strong> {{ task.status.name }}<br>
+							<strong>User:</strong> {{ task.user.name }}<br>
+						</p>
+						<p class="card-text">
+							<strong>Time Started:</strong> {{ task.time_created.strftime('%y-%d-%m %H:%M') }}<br>
+							<strong>Time Updated:</strong> {{ task.time_update.strftime('%y-%d-%m %H:%M') }}<br>
+							<strong>Time Elapsed:</strong> {{ (task.time_update - task.time_created) }}
+						</p>
+						<p class="card-text code-window">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec
+							magna euismod, molestie velit quis, mattis lorem. Nam in risus et sem consectetur
+							fermentum sed quis neque. Phasellus varius nibh nulla, ut tempus nulla mattis et. Orci
+							varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+							Quisque sit amet diam vitae risus euismod posuere. Donec pretium vestibulum ligula nec
+							placerat. Morbi dolor diam, euismod ut facilisis ut, interdum et urna. Quisque sit amet
+							dui venenatis, molestie diam vitae, eleifend arcu. Sed dapibus massa pharetra cursus
+							condimentum. Donec id nulla viverra, faucibus sem ac, pharetra metus.</p>
+						<a class="card-text btn btn-link link-custom-color">Download Log (placeholder)</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}

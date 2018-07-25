@@ -42,13 +42,26 @@
 }
 
 .link-custom-lg {
-    color: #f84018;
-    text-decoration: none;
     margin-top: 10px;
 }
 
-a:link, a:hover, a:active, a:visited {
+a.link-custom-color {
+    color: #f84018 !important;
+}
+
+a.link-custom-color a:hover, a.link-custom-color a:active{
+    color: #731c07 !important;
+}
+
+a.link-nostyle {
+    color: #fff;
     text-decoration: none !important;
+}
+
+.code-window {
+    background-color: rgba(255, 255, 255, 0.14);
+    margin: 5px -5px;
+    padding: 25px;
 }
 
 .header-adjust {

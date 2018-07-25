@@ -3,18 +3,16 @@ from flask_admin import Admin, BaseView, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.utils import secure_filename
 from werkzeug.contrib.fixers import ProxyFix
-from multiprocessing import Lock, Process, Pipe
+from multiprocessing import Lock, Pipe
 
 import os
 import sys
-import time
-import random
 
 # Package specific imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from models import db, Task, File, User, Status
 from forms import TaskForm, UserForm, FileForm
-from operations import FakeProcess
+from handlers import FakeProcess
 
 # -------------------- APPLICATION CONFIGURATION --------------------
 app = Flask(__name__)
@@ -60,9 +58,10 @@ def page_index(form=None):
                            active='index')
 
 
-@app.route('/active')
-def page_active():
-    return render_template('active.html', active='active', tasks=Task.query.order_by(Task.time_created).all())
+@app.route('/history')
+def page_history():
+    # TODO: Implement with page hopping and next page btn etc.
+    return render_template('history.html', active='history', tasks=Task.query.order_by(Task.time_created).all())
 
 
 @app.route('/about')
@@ -81,8 +80,9 @@ def page_home():
 @app.route('/task/<int:pid>')
 def page_task(pid):
     if session.get('user_name'):
-        return render_template('task.html', active='task', task=Task.query.filter_by(id=pid).first())
+        return render_template('task.html', task=Task.query.filter_by(id=pid).first())
     else:
+        flash('Task not found.', 'warning')
         return redirect(url_for('page_index'))
 
 
