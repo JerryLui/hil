@@ -14,7 +14,7 @@ class FakeProcess(Process):
         super().__init__()
 
     def run(self):
-        self.pipe.send(1)
+        self.pipe.send(2)
         time.sleep(random.randint(3, 4))
 
         while not self.lock.acquire(timeout=20):
@@ -23,7 +23,7 @@ class FakeProcess(Process):
         self.pipe.send(3)
         time.sleep(random.randint(5, 10))
 
-        if random.randint(0,5):
+        if random.randint(0, 5):
             self.pipe.send(4)
         else:
             self.pipe.send(5)
@@ -32,5 +32,6 @@ class FakeProcess(Process):
             self.lock.release()
         except ValueError:
             pass
+
         self.pipe.close()
         return

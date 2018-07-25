@@ -25,6 +25,9 @@
 
 	<!--Custom scripts-->
 	<script src="{{ url_for('static', filename='js/alert.js') }}"></script>
+
+	{% block script %}
+	{% endblock %}
 </head>
 <body class="bg-light text-white">
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -69,8 +72,6 @@
 	</div>
 </nav>
 {% block content %}
-{% endblock %}
-{% block script %}
 {% endblock %}
 </body>
 </html>

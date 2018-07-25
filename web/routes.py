@@ -32,6 +32,9 @@ app.config['OPS_PIPE_PARENT'] = dict()
 app.config['OPS_PIPE_CHILD'] = dict()
 app.config['OPS_PROCESS'] = dict()
 
+# None at 0 to match table indexing.
+app.config['STATUS_DICT'] = [None, 'Waiting', 'Starting', 'Running', 'Finished', 'Failed', 'Error']
+
 db.init_app(app)
 app.app_context().push()
 
@@ -53,7 +56,7 @@ def page_index(form=None):
             form = (UserForm(prefix='login'), UserForm(prefix='register'))
     return render_template('index.html',
                            form=form,
-                           tasks=Task.query.order_by(Task.time_created).all(),
+                           tasks=Task.query.order_by(Task.time_created.desc()).limit(30).all(),
                            active='index')
 
 
@@ -75,21 +78,65 @@ def page_home():
         return redirect(url_for('page_index'))
 
 
-@app.route('/task/<int:id>')
-def page_task(id):
+@app.route('/task/<int:pid>')
+def page_task(pid):
     if session.get('user_name'):
-        return render_template('task.html', active='task', task=Task.query.filter_by(id=id).first())
+        return render_template('task.html', active='task', task=Task.query.filter_by(id=pid).first())
     else:
         return redirect(url_for('page_index'))
 
 
 @app.errorhandler(404)
 @app.errorhandler(405)
-def error(msg):
+def page_error(msg):
     return render_template('error.html', error=msg)
 
 
 # -------------------- OPERATIONS --------------------
+@app.route('/task/update/all')
+def update_all_tasks():
+    # TODO: Schedule this function after starting a task (replace if with while loop with sleep inside)
+    active_dict = dict()
+
+    # Use list to avoid "RuntimeError: dictionary changed size during iteration"
+    for pid in list(app.config['OPS_PIPE_PARENT'].keys()):
+        if update_task(pid):
+            task = Task.query.filter_by(id=pid).first()
+            active_dict[pid] = task.status.name
+
+    return jsonify(active_dict)
+
+
+def update_task(pid):
+    """
+    :returns : bool
+    If the process at pid is still alive.
+    """
+    process = app.config['OPS_PROCESS'].get(pid)
+    parent = app.config['OPS_PIPE_PARENT'].get(pid)
+
+    if not parent:
+        return False
+
+    try:
+        if parent.poll() or process.is_alive():
+            if parent.poll():
+                status_id = parent.recv()
+
+                task = Task.query.filter_by(id=pid).first()
+                if task.status_id != status_id:
+                    task.status_id = status_id
+                    db.session.commit()
+        else:
+            raise EOFError()
+        return True
+    except (OSError, EOFError, BrokenPipeError):
+        pass
+    parent.close()
+    del app.config['OPS_PIPE_PARENT'][pid], app.config['OPS_PIPE_CHILD'][pid]
+    return False
+
+
 @app.route('/create', methods=['POST'])
 def create_task():
     form = TaskForm([(file.name, file.name) for file in File.query.all()])
@@ -107,7 +154,6 @@ def create_task():
             flash('Task created!', 'success')
 
             # Start new process
-
             app.config['OPS_PIPE_PARENT'][new_task.id], app.config['OPS_PIPE_CHILD'][new_task.id] = Pipe(duplex=False)
             app.config['OPS_PROCESS'][new_task.id] = FakeProcess(new_task.file.path,
                                                                  new_task.id,
@@ -118,7 +164,7 @@ def create_task():
         except Exception as xcpt:
             db.session.rollback()
             flash(xcpt, 'danger')
-    return page_index()
+    return redirect(url_for('page_index'))
 
 
 @app.route('/register', methods=['POST'])
@@ -137,7 +183,7 @@ def create_user():
             session['user_name'] = user.name
             flash('User created successfully.', 'success')
 
-    return page_index(form)
+    return redirect(url_for('page_index'))
 
 
 @app.route('/login', methods=['POST'])
@@ -156,7 +202,7 @@ def create_session():
             flash('Login successful.', 'success')
         else:
             flash('Incorrect login credentials.', 'warning')
-    return page_index(form)
+    return redirect(url_for('page_index'))
 
 
 @app.route('/update/db')
@@ -200,7 +246,7 @@ def _populate_table_file():
 
 
 def _populate_table_status():
-    [db_insert_or_get(Status, name=name) for name in ('Waiting', 'Starting', 'Running', 'Finished', 'Failed', 'Error')]
+    [db_insert_or_get(Status, name=name) for name in app.config['STATUS_DICT'][1:]]
     db.session.commit()
 
 
