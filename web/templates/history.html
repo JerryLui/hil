@@ -1,4 +1,7 @@
 {% extends "layout.html" %}
+{% block script %}
+	<script src="{{ url_for('static', filename='js/query_progress.js') }}"></script>
+{% endblock %}
 {% block content %}
 	<div class="container" style="margin-top: 30px">
 		<div class="row">
@@ -27,8 +30,8 @@
 							{% endif %}
 							<td class="text-limit">{{ task.file.name }}</td>
 							<td>{{ task.time_created.strftime('%y-%d-%m %H:%M') }}</td>
-							<td id="status-{{ task.id }}">
-								<a href="task/{{ task.id }}" title="See task log" class="link-nostyle">{{ task.status.name }}</a>
+							<td>
+								<a id="status-{{ task.id }}" href="task/{{ task.id }}" title="See task log" class="link-nostyle">{{ task.status.name }}</a>
 							</td>
 						</tr>
 					{% endfor %}

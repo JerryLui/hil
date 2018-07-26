@@ -30,7 +30,9 @@
 								{% endif %}
 								<td class="text-limit">{{ task.file.name }}</td>
 								<td>{{ task.time_created.strftime('%y-%d-%m %H:%M') }}</td>
-								<td id="status-{{ task.id }}"><a href="task/{{ task.id }}" class="link-nostyle" title="See task log">{{ task.status.name }}</a></td>
+								<td>
+									<a id="status-{{ task.id }}" href="task/{{ task.id }}" class="link-nostyle" title="See task log">{{ task.status.name }}</a>
+								</td>
 							</tr>
 						{% endfor %}
 						</tbody>
