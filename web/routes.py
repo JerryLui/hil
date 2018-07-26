@@ -38,6 +38,7 @@ app.app_context().push()
 
 # TODO: Percentage based height of tables.
 
+
 # -------------------- ROUTES --------------------
 @app.route('/', methods=['GET'])
 @app.route('/index', methods=['GET'])
@@ -212,6 +213,11 @@ def db_update_files():
     """ Implement better way of detecting changes in file storage. """
     _populate_table_file()
     return redirect(url_for('page_index'))
+
+
+@app.route('/download/log/<filename>')
+def download_log(filename):
+    return filename
 
 
 @app.route('/logout')
