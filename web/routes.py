@@ -36,11 +36,13 @@ app.config['STATUS_DICT'] = [None, 'Waiting', 'Starting', 'Running', 'Finished',
 db.init_app(app)
 app.app_context().push()
 
+# TODO: Percentage based height of tables.
 
 # -------------------- ROUTES --------------------
 @app.route('/', methods=['GET'])
 @app.route('/index', methods=['GET'])
 def page_index(form=None):
+    # TODO: Multiselect task create
     if session.get('user_name'):
         form = TaskForm([(file.name, file.name) for file in File.query.all()])
     else:
@@ -61,7 +63,7 @@ def page_index(form=None):
 @app.route('/history')
 def page_history():
     # TODO: Implement with page hopping and next page btn etc.
-    return render_template('history.html', active='history', tasks=Task.query.order_by(Task.time_created).all())
+    return render_template('history.html', active='history', tasks=Task.query.order_by(Task.time_created.desc()).all())
 
 
 @app.route('/about')

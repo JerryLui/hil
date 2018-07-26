@@ -7,16 +7,57 @@
 					<div class="card-body">
 						<h3 class="card-title">Task: {{ task.id }}</h3>
 						<p class="card-text">
-							<strong>Filename:</strong> {{ task.file.name }}<br>
-							<strong>Status:</strong> {{ task.status.name }}<br>
-							<strong>User:</strong> {{ task.user.name }}<br>
+						<table>
+							<tr>
+								<td class="marginalized">
+									<strong>User:</strong>
+								</td>
+								<td>
+									{{ task.user.name }}
+								</td>
+							</tr>
+							<tr>
+								<td class="marginalized"><strong>Status:</strong></td>
+								<td>
+									{{ task.status.name }}
+								</td>
+							</tr>
+							<tr>
+								<td class="marginalized"><strong>Filename:</strong></td>
+								<td>
+									{{ task.file.name }}
+								</td>
+							</tr>
+						</table>
 						</p>
 						<p class="card-text">
-							<strong>Time Started:</strong> {{ task.time_created.strftime('%y-%d-%m %H:%M') }}<br>
-							<strong>Time Updated:</strong> {{ task.time_update.strftime('%y-%d-%m %H:%M') }}<br>
-							<strong>Time Elapsed:</strong> {{ (task.time_update - task.time_created) }}
+						<table>
+							<tr>
+								<td class="marginalized"><strong>Time Started:</strong></td>
+								<td>
+									{{ task.time_created.strftime('%y-%d-%m %H:%M') }}
+								</td>
+							</tr>
+							<tr>
+								<td class="marginalized">
+									<strong>Time Updated:</strong>
+								</td>
+								<td>
+									{{ task.time_update.strftime('%y-%d-%m %H:%M') }}
+								</td>
+							</tr>
+							<tr>
+								<td class="marginalized">
+									<strong>Time Elapsed:</strong>
+								</td>
+								<td>
+									{{ "{:.2f} Minutes".format((task.time_update - task.time_created).seconds / 60) }}
+								</td>
+							</tr>
+						</table>
 						</p>
-						<p class="card-text code-window">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec
+						<p class="card-text code-window">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+							Integer nec
 							magna euismod, molestie velit quis, mattis lorem. Nam in risus et sem consectetur
 							fermentum sed quis neque. Phasellus varius nibh nulla, ut tempus nulla mattis et. Orci
 							varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.

@@ -1,4 +1,40 @@
 {% extends "layout.html" %}
 {% block content %}
-	<div class="container" style="margin-top: 30px"><h1 class="text-shadow">PAGE UNDER CONSTRUCTION</h1></div>
+	<div class="container" style="margin-top: 30px">
+		<div class="row">
+			<div class="col-12">
+				<h1>Task history</h1>
+				<table class="table table-striped table-dark custom-bg-color" style="margin-bottom: 30px;">
+					<thead>
+					<tr>
+						<th scope="col">Id</th>
+						<th scope="col">User</th>
+						<th scope="col">Log</th>
+						<th scope="col">Time</th>
+						<th scope="col">Status</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% for task in tasks %}
+						<tr>
+							<th scope="row">
+								<a href="/task/{{ task.id }}" class="link-custom-color" title="See task log">{{ task.id }}</a>
+							</th>
+							{% if task.user.name %}
+								<td>{{ task.user.name }}</td>
+							{% else %}
+								<td>(deleted)</td>
+							{% endif %}
+							<td class="text-limit">{{ task.file.name }}</td>
+							<td>{{ task.time_created.strftime('%y-%d-%m %H:%M') }}</td>
+							<td id="status-{{ task.id }}">
+								<a href="task/{{ task.id }}" title="See task log" class="link-nostyle">{{ task.status.name }}</a>
+							</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 {% endblock %}

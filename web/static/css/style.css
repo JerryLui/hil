@@ -55,7 +55,10 @@ a.link-custom-color a:hover, a.link-custom-color a:active{
 
 a.link-nostyle {
     color: #fff;
-    text-decoration: none !important;
+}
+
+td.marginalized {
+    padding-right: 10px;
 }
 
 .code-window {
