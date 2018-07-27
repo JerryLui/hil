@@ -36,8 +36,6 @@ app.config['STATUS_DICT'] = [None, 'Waiting', 'Starting', 'Running', 'Finished',
 db.init_app(app)
 app.app_context().push()
 
-# TODO: Percentage based height of tables.
-
 
 # -------------------- ROUTES --------------------
 @app.route('/', methods=['GET'])
@@ -163,9 +161,11 @@ def create_task():
                                                                  app.config['OPS_LOCK'],
                                                                  app.config['OPS_PIPE_CHILD'][new_task.id])
             app.config['OPS_PROCESS'][new_task.id].start()
+            app.logger.info('%s created new task on file %s', user.name, file.name)
 
         except Exception as xcpt:
             db.session.rollback()
+            app.logger.exception('%s raised with file %s: \n' + str(xcpt), session['user_name'], form.file_name)
             flash(xcpt, 'danger')
     return redirect(url_for('page_index'))
 
@@ -184,6 +184,7 @@ def create_user():
             db.session.commit()
 
             session['user_name'] = user.name
+            app.logger.info('User %s created successfully.', user.name)
             flash('User created successfully.', 'success')
 
     return redirect(url_for('page_index'))
@@ -202,8 +203,10 @@ def create_session():
         user = db.session.query(User).filter_by(name=user_name).first()
         if user is not None and user.check_password(user_password):
             session['user_name'] = user_name
+            app.logger.info('%s logged in successfully.', user_name)
             flash('Login successful.', 'success')
         else:
+            app.logger.info('%s tried to log in unsuccessfully.', user_name)
             flash('Incorrect login credentials.', 'warning')
     return redirect(url_for('page_index'))
 
