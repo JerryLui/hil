@@ -1,3 +1,47 @@
+/*----- CLASS SPECIFICS -----*/
+.container-spaced {
+    margin-top: 30px;
+}
+
+.bg-transparent-90 {
+    background: rgba(0, 0, 0, 0.9) !important;
+}
+
+.bg-transparent-78 {
+    background: rgba(0, 0, 0, 0.78) !important;
+}
+
+.table-medium {
+    max-height: 75vh;
+    margin: 0;
+    overflow: auto;
+}
+
+.table-large {
+    max-height: 80vh;
+    margin: 0;
+    overflow: auto;
+}
+
+.table {
+    margin: 0;
+}
+
+.form-medium {
+    padding: 9px 15px;
+    border-radius: 5px;
+}
+
+.btn-medium {
+    margin-top: 10px;
+    width: 100px;
+}
+
+.width-medium {
+    width: 37vw;
+}
+
+/*----- ADJUSTMENTS -----*/
 .alert-fixed {
     position: fixed;
     top: 56px;
@@ -7,64 +51,8 @@
     border-radius: 0;
 }
 
-.transparent {
-    background: rgba(0, 0, 0, 0.9);
-}
-
-.custom-bg-color {
-    background: rgba(0, 0, 0, 0.78);
-}
-
-.table-medium {
-    height: 700px;
-    margin: 0;
-    overflow: auto;
-}
-
-.table-large {
-    height: 820px;
-    margin: 0;
-    overflow: auto;
-}
-
-.form-custom {
-    padding: 9px 15px;
-    border-radius: 5px;
-}
-
-.dropdown-custom {
-    overflow: scroll;
-}
-
-.btn-custom {
-    margin-top: 10px;
-    width: 100px;
-}
-
-.link-custom-lg {
-    margin-top: 10px;
-}
-
-a.link-custom-color {
-    color: #f84018 !important;
-}
-
-a.link-custom-color a:hover, a.link-custom-color a:active{
-    color: #731c07 !important;
-}
-
-a.link-nostyle {
-    color: #fff;
-}
-
-td.marginalized {
+td.spaced {
     padding-right: 10px;
-}
-
-.code-window {
-    background-color: rgba(255, 255, 255, 0.14);
-    margin: 5px -5px;
-    padding: 25px;
 }
 
 .header-adjust {
@@ -73,10 +61,34 @@ td.marginalized {
 }
 
 .navbar {
-    padding-left: 22px;
-    padding-right: 22px;
+    padding-left: 1vw;
+    padding-right: 1vw;
 }
 
+.code-frame {
+    background-color: rgba(255, 255, 255, 0.14);
+    margin: 5px -5px;
+    padding: 25px;
+}
+
+/*----- LINK -----*/
+.link-margin-large {
+    margin-top: 10px;
+}
+
+a.link-aptiv {
+    color: #f84018 !important;
+}
+
+a.link-aptiv a:hover, a.link-aptiv a:active{
+    color: #731c07 !important;
+}
+
+a.link-white {
+    color: #fff;
+}
+
+/*----- TEXT -----*/
 .text-shadow {
     text-shadow: 2px 2px rgba(108, 117, 125, 0.6);
 }
@@ -86,11 +98,12 @@ td.marginalized {
     max-width: 400px;
 }
 
+/*----- GENERAL -----*/
 html, body {
     height: 100%;
     width: 100%;
-    padding: 0px;
-    margin: 0px;
+    padding: 0;
+    margin: 0;
 }
 
 body {

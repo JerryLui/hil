@@ -3,13 +3,13 @@
 	<div class="container" style="margin-top: 80px;">
 		<div class="row">
 			<div class="col-md-12">
-				<div class="card custom-bg-color">
+				<div class="card bg-transparent-78">
 					<div class="card-body">
 						<h3 class="card-title">Task: {{ task.id }}</h3>
 						<p class="card-text">
 						<table>
 							<tr>
-								<td class="marginalized">
+								<td class="spaced">
 									<strong>User:</strong>
 								</td>
 								<td>
@@ -17,13 +17,13 @@
 								</td>
 							</tr>
 							<tr>
-								<td class="marginalized"><strong>Status:</strong></td>
+								<td class="spaced"><strong>Status:</strong></td>
 								<td>
 									{{ task.status.name }}
 								</td>
 							</tr>
 							<tr>
-								<td class="marginalized"><strong>Filename:</strong></td>
+								<td class="spaced"><strong>Filename:</strong></td>
 								<td>
 									{{ task.file.name }}
 								</td>
@@ -33,13 +33,13 @@
 						<p class="card-text">
 						<table>
 							<tr>
-								<td class="marginalized"><strong>Time Started:</strong></td>
+								<td class="spaced"><strong>Time Started:</strong></td>
 								<td>
 									{{ task.time_created.strftime('%y-%d-%m %H:%M') }}
 								</td>
 							</tr>
 							<tr>
-								<td class="marginalized">
+								<td class="spaced">
 									<strong>Time Updated:</strong>
 								</td>
 								<td>
@@ -47,7 +47,7 @@
 								</td>
 							</tr>
 							<tr>
-								<td class="marginalized">
+								<td class="spaced">
 									<strong>Time Elapsed:</strong>
 								</td>
 								<td>
@@ -56,7 +56,7 @@
 							</tr>
 						</table>
 						</p>
-						<p class="card-text code-window">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+						<p class="card-text code-frame">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 							Integer nec
 							magna euismod, molestie velit quis, mattis lorem. Nam in risus et sem consectetur
 							fermentum sed quis neque. Phasellus varius nibh nulla, ut tempus nulla mattis et. Orci
@@ -65,7 +65,7 @@
 							placerat. Morbi dolor diam, euismod ut facilisis ut, interdum et urna. Quisque sit amet
 							dui venenatis, molestie diam vitae, eleifend arcu. Sed dapibus massa pharetra cursus
 							condimentum. Donec id nulla viverra, faucibus sem ac, pharetra metus.</p>
-						<a class="card-text btn btn-link link-custom-color" href="/download/log/{{ task.file.name }}">
+						<a class="card-text btn btn-link link-aptiv" href="/download/log/{{ task.file.name }}">
 							Download Log
 						</a>
 					</div>
