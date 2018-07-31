@@ -14,7 +14,7 @@ class User(db.Model):
     def __init__(self, name, password):
         super(User, self).__init__(name=name.lower(), password=generate_password_hash(password))
 
-    def check_password(self, password):
+    def verify_password(self, password):
         return check_password_hash(self.password, password)
 
     def __repr__(self):

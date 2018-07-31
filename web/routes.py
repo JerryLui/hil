@@ -201,7 +201,7 @@ def create_session():
         user_password = form.password.data
 
         user = db.session.query(User).filter_by(name=user_name).first()
-        if user is not None and user.check_password(user_password):
+        if user is not None and user.verify_password(user_password):
             session['user_name'] = user_name
             app.logger.info('%s logged in successfully.', user_name)
             flash('Login successful.', 'success')
