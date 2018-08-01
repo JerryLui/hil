@@ -15,21 +15,21 @@ class FakeProcess(Process):
         self.pipe = pipe
 
         self.log_name = ''.join([os.path.splitext(self.file_path)[0], '_', str(task_id), '.log'])
-        logger = logging.getLogger(os.path.split(self.log_name)[1])
+        # logger = logging.getLogger(os.path.split(self.log_name)[1])
         handler = logging.FileHandler(self.log_name)
         # logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s ')
         # self.logger.addHandler(self.handler)
         # self.logger.setLevel(logging.DEBUG)
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(handler)
-        logger.info('TEST1')
+        # logger.setLevel(logging.DEBUG)
+        # logger.addHandler(handler)
+        # logger.info('TEST1')
 
         # logging.info('Initiated process on: ', self.file_path)
         # logging.info('Task ID: ', str(self.task_id))
         super().__init__()
 
     def run(self):
-        logging.info('Starting run...')
+        # logging.info('Starting run...')
         self.pipe.send(2)
         time.sleep(random.randint(3, 4))
 

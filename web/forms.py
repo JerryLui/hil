@@ -16,14 +16,6 @@ class TaskForm(FlaskForm):
         self.file_name.choices = choices
 
 
-class PasswordForm(FlaskForm):
-    password = PasswordField(
-            'Password',
-            validators=[InputRequired("Please enter your password."),
-                        Length(min=6, message="Minimum 6 characters required for password.")]
-    )
-    submit = SubmitField('Change password')
-
 class UserForm(FlaskForm):
     name = StringField(
             'NetID',
