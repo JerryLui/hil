@@ -1,5 +1,6 @@
 from multiprocessing import Process
 from subprocess import *
+
 import time
 import random
 import logging
@@ -15,37 +16,34 @@ class FakeProcess(Process):
         self.pipe = pipe
 
         self.log_name = ''.join([os.path.splitext(self.file_path)[0], '_', str(task_id), '.log'])
-        # logger = logging.getLogger(os.path.split(self.log_name)[1])
-        handler = logging.FileHandler(self.log_name)
-        # logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s ')
-        # self.logger.addHandler(self.handler)
-        # self.logger.setLevel(logging.DEBUG)
-        # logger.setLevel(logging.DEBUG)
-        # logger.addHandler(handler)
-        # logger.info('TEST1')
-
-        # logging.info('Initiated process on: ', self.file_path)
-        # logging.info('Task ID: ', str(self.task_id))
         super().__init__()
 
     def run(self):
-        # logging.info('Starting run...')
+        logger = logging.getLogger(self.log_name[-8:])  # arbitrary name
+        handler = logging.FileHandler(self.log_name)
+        formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s ')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+        logger.info('Logging initialized on %s.' % self.file_path)
+
+        logger.info('Starting run...')
         self.pipe.send(2)
         time.sleep(random.randint(3, 4))
 
         while not self.lock.acquire(timeout=20):
-            # self.logger.info('Acquiring lock...')
+            logger.info('Acquiring lock...')
             self.pipe.send(1)
 
-        # self.logger.info('Running...')
+        logger.info('Running...')
         self.pipe.send(3)
         time.sleep(random.randint(5, 10))
 
         if random.randint(0, 5):
-            # self.logger.info('Run successful.')
+            logger.info('Run successful.')
             self.pipe.send(4)
         else:
-            # self.logger.error('Run failed.')
+            logger.error('Run failed.')
             self.pipe.send(5)
 
         try:
@@ -54,5 +52,5 @@ class FakeProcess(Process):
             pass
 
         self.pipe.close()
-        # self.logger.info('Process finished.')
+        logger.info('Process finished.')
         return

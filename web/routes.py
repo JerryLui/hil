@@ -2,7 +2,6 @@ from flask import Flask, render_template, send_from_directory, flash, session, r
 from flask_admin import Admin, BaseView, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.utils import secure_filename
-from werkzeug.contrib.fixers import ProxyFix
 from multiprocessing import Lock, Pipe
 
 import os
@@ -19,7 +18,6 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///static/db/database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-app.wsgi_app = ProxyFix(app.wsgi_app)
 app.secret_key = 'a3067a6f5bc2b743c88ef8'
 app.config['PROJECT_FOLDER'] = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(app.config['PROJECT_FOLDER'], 'tmp', 'uploads')
