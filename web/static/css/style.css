@@ -80,17 +80,21 @@ a.link-aptiv {
     color: #f84018 !important;
 }
 
-a.link-aptiv a:hover, a.link-aptiv a:active{
-    color: #731c07 !important;
+a.link-aptiv:hover, a.link-aptiv:active {
+    color: #d23a18 !important;
 }
 
 a.link-white {
     color: #fff;
 }
 
+a.link-white:hover, a.link-white:active {
+    color: #cdcdcd;
+}
+
 /*----- TEXT -----*/
 .text-shadow {
-    text-shadow: 2px 2px rgba(108, 117, 125, 0.6);
+    text-shadow: 2px 2px rgba(108, 117, 125, 0.8);
 }
 
 .text-limit {
