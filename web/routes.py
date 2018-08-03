@@ -362,7 +362,7 @@ def _recursive_log_scan(directory=None):
     for entry in os.scandir(directory):
         if entry.is_dir(follow_symlinks=False):
             yield from _recursive_log_scan(entry)
-        elif os.path.splitext(entry)[1] == '.dvl':
+        elif os.path.splitext(entry.name)[1] == '.dvl':
             yield entry
 
 
