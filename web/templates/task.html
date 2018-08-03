@@ -35,7 +35,7 @@
 							<tr>
 								<td class="spaced"><strong>Time Started:</strong></td>
 								<td>
-									{{ task.time_created.strftime('%y-%d-%m %H:%M') }}
+									{{ task.time_created.strftime('%y-%b-%d, %H:%M') }}
 								</td>
 							</tr>
 							<tr>
@@ -43,7 +43,7 @@
 									<strong>Time Updated:</strong>
 								</td>
 								<td>
-									{{ task.time_update.strftime('%y-%d-%m %H:%M') }}
+									{{ task.time_update.strftime('%y-%b-%d, %H:%M') }}
 								</td>
 							</tr>
 							<tr>
@@ -56,16 +56,13 @@
 							</tr>
 						</table>
 						</p>
-						<p class="card-text code-frame">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-							Integer nec
-							magna euismod, molestie velit quis, mattis lorem. Nam in risus et sem consectetur
-							fermentum sed quis neque. Phasellus varius nibh nulla, ut tempus nulla mattis et. Orci
-							varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-							Quisque sit amet diam vitae risus euismod posuere. Donec pretium vestibulum ligula nec
-							placerat. Morbi dolor diam, euismod ut facilisis ut, interdum et urna. Quisque sit amet
-							dui venenatis, molestie diam vitae, eleifend arcu. Sed dapibus massa pharetra cursus
-							condimentum. Donec id nulla viverra, faucibus sem ac, pharetra metus.</p>
-						<a class="card-text btn btn-link link-aptiv" href="/download/log/{{ task.file.name }}">
+						<h5 class="card-title">Log output:</h6>
+						<p class="card-text code-frame">
+							{% for entry in text %}
+								{{ entry }}<br>
+							{% endfor %}
+						</p>
+						<a class="card-text btn btn-link link-aptiv" href="/download/log/{{ task.id }}">
 							Download Log
 						</a>
 					</div>

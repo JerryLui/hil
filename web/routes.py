@@ -1,5 +1,6 @@
-from flask import Flask, render_template, send_from_directory, flash, session, redirect, url_for, request, jsonify
-from flask_admin import Admin, BaseView, AdminIndexView, expose
+from flask import Flask, render_template, flash, session, redirect, url_for, request, jsonify
+from flask import send_from_directory, send_file
+from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.utils import secure_filename
 from multiprocessing import Lock, Pipe, Process
@@ -24,6 +25,7 @@ app.config['DEVICE_PORT'] = 5005
 app.config['DEVICE_LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'
 
 app.config['CREATE_ADMIN'] = True
+app.debug = True
 
 
 # -------------------- APPLICATION CONFIGURATION --------------------
@@ -101,7 +103,9 @@ def page_home():
 def page_task(pid):
     """ VIEW: Task specific information """
     if session.get('user_name'):
-        return render_template('task.html', task=Task.query.filter_by(id=pid).first())
+        task = Task.query.filter_by(id=pid).first()
+        log_text = get_log_text(task.file.path, task.id)
+        return render_template('task.html', task=Task.query.filter_by(id=pid).first(), text=log_text)
     else:
         flash('Task not found.', 'warning')
         return redirect(url_for('page_index'))
@@ -191,6 +195,7 @@ def create_task():
             app.config['OPS_PIPE_PARENT'][new_task.id], app.config['OPS_PIPE_CHILD'][new_task.id] = Pipe(duplex=False)
             app.config['OPS_PROCESS'][new_task.id] = FakeProcess(new_task.file.path,
                                                                  new_task.id,
+                                                                 get_log_path(new_task.file.path, new_task.id),
                                                                  app.config['OPS_LOCK'],
                                                                  app.config['OPS_PIPE_CHILD'][new_task.id])
             app.config['OPS_PROCESS'][new_task.id].start()
@@ -265,9 +270,28 @@ def db_update_files():
     return redirect(url_for('page_index'))
 
 
-@app.route('/download/log/<filename>/<task_id>')
-def download_log(filename, task_id):
-    return filename
+def get_log_path(file_path, task_id):
+    """
+    :return : path
+    The path to log file associated with given file_path and task_id
+    """
+    return ''.join([os.path.splitext(file_path)[0], '_', str(task_id), '.log'])
+
+
+def get_log_text(file_path, task_id):
+    """
+    :return : str
+    List of log text entries in log file
+    """
+    with open(get_log_path(file_path, task_id), 'r') as f:
+        return f.readlines()
+
+
+@app.route('/download/log/<task_id>')
+def download_log(task_id):
+    task = Task.query.filter_by(id=task_id).first()
+    log_path = get_log_path(task.file.path, task.id)
+    return send_file(log_path, as_attachment=True)
 
 
 @app.route('/logout')

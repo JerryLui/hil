@@ -9,18 +9,17 @@ import os
 
 # -------------------- PROCESS --------------------
 class FakeProcess(Process):
-    def __init__(self, file_path, task_id, lock, pipe):
+    def __init__(self, file_path, task_id, log_path, lock, pipe):
         self.file_path = file_path
         self.task_id = task_id
+        self.log_path = log_path
         self.lock = lock
         self.pipe = pipe
-
-        self.log_name = ''.join([os.path.splitext(self.file_path)[0], '_', str(task_id), '.log'])
         super().__init__()
 
     def run(self):
-        logger = logging.getLogger(self.log_name[-8:])  # arbitrary name
-        handler = logging.FileHandler(self.log_name)
+        logger = logging.getLogger(self.log_path[-8:])  # arbitrary name
+        handler = logging.FileHandler(self.log_path)
         formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s ')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
