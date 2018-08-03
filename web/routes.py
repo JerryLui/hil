@@ -2,7 +2,7 @@ from flask import Flask, render_template, send_from_directory, flash, session, r
 from flask_admin import Admin, BaseView, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from werkzeug.utils import secure_filename
-from multiprocessing import Lock, Pipe
+from multiprocessing import Lock, Pipe, Process
 
 import os
 import sys
@@ -27,6 +27,8 @@ app.config['OPS_LOCK'] = Lock()
 app.config['OPS_PIPE_PARENT'] = dict()
 app.config['OPS_PIPE_CHILD'] = dict()
 app.config['OPS_PROCESS'] = dict()
+
+app.config['FILE_UPDATE_PROCESS'] = None
 
 # None at 0 to match table indexing.
 app.config['STATUS_DICT'] = [None, 'Waiting', 'Starting', 'Running', 'Finished', 'Failed', 'Error']
@@ -212,7 +214,12 @@ def create_session():
 @app.route('/update/db')
 def db_update_files():
     """ Implement better way of detecting changes in file storage. """
-    _populate_table_file()
+    try:
+        if not app.config['FILE_UPDATE_PROCESS'].is_alive():
+            app.config['FILE_UPDATE_PROCESS'] = Process(target=_populate_table_file())
+            app.config['FILE_UPDATE_PROCESS'].start()
+    except AttributeError:
+        pass
     return redirect(url_for('page_index'))
 
 
