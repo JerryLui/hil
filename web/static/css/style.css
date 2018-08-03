@@ -116,6 +116,7 @@ html, body {
 
 body {
     padding-top: 70px;
+    background-color: #3d3427 !important;
     background-image: url("/static/img/slider/data.jpg");
     background-position: bottom;
     background-repeat: no-repeat;

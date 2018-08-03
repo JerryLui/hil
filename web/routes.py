@@ -11,7 +11,7 @@ import sys
 # Package specific imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from models import db, Task, File, User, Status
-from forms import TaskForm, UserForm, FileForm
+from forms import TaskForm, UserForm, FileForm, PasswordForm
 from handlers import FakeProcess
 
 
@@ -109,6 +109,26 @@ def view_task(pid):
     else:
         flash('Task not found.', 'warning')
         return redirect(url_for('view_index'))
+
+
+@app.route('/change-password', methods=['GET', 'POST'])
+def view_password():
+    user_name = session.get('user_name')
+    if not user_name:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('view_index'))
+
+    form = PasswordForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(name=user_name).first()
+        if user.verify_password(form.current_password.data):
+            user.set_password(form.new_password.data)
+            db.session.commit()
+            flash('Password update successful!', 'success')
+            return redirect(url_for('view_home'))
+        else:
+            flash('Incorrect password!', 'warning')
+    return render_template('password.html', form=form)
 
 
 @app.errorhandler(404)
@@ -241,7 +261,7 @@ def create_session():
     if not form.validate_on_submit():
         flash('Invalid input.', 'warning')
     else:
-        user_name = form.name.data
+        user_name = form.name.data.lower()
         user_password = form.password.data
 
         user = db.session.query(User).filter_by(name=user_name).first()
@@ -297,6 +317,7 @@ def download_log(task_id):
 @app.route('/logout')
 def logout():
     session.pop('user_name', None)
+    flash('You have been logged out.', 'info')
     return redirect(url_for('view_index'))
 
 

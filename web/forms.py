@@ -34,6 +34,20 @@ class UserForm(FlaskForm):
             self.submit.label.text = kwargs['prefix'].title()
 
 
+class PasswordForm(FlaskForm):
+    current_password = PasswordField(
+            'Current Password',
+            validators=[InputRequired("Please enter your current password.")]
+    )
+
+    new_password = PasswordField(
+            'New Password',
+            validators=[InputRequired("Please enter a new password."),
+                        Length(min=6, message="Minimum 6 characters required for password.")]
+    )
+    submit = SubmitField('Change Password')
+
+
 class FileForm(FlaskForm):
     file = FileField(validators=[FileRequired("Please select a filed.")])
     submit = SubmitField('Upload')

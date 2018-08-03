@@ -9,17 +9,20 @@ db = SQLAlchemy()
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), unique=True, nullable=False)
-    password = db.Column(db.String, nullable=False)
+    password = db.Column(db.String(128), nullable=False)
     admin = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self, name, password):
         super(User, self).__init__(name=name.lower(), password=generate_password_hash(password))
 
-    def verify_password(self, password):
-        return check_password_hash(self.password, password)
-
     def __repr__(self):
         return '<User: %r>' % self.name
+
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password, password)
 
 
 class File(db.Model):
@@ -55,4 +58,3 @@ class Task(db.Model):
 
     def __repr__(self):
         return '<Task id:%r status:%r>' % (self.id, self.status)
-
