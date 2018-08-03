@@ -93,7 +93,8 @@ def view_info():
 def view_home():
     """ VIEW: User homepage, shows log of all tasks created by user """
     if session.get('user_name'):
-        return render_template('home.html', tasks=User.query.filter_by(name=session['user_name']).first().tasks)
+        user = User.query.filter_by(name=session['user_name']).first()
+        return render_template('home.html', tasks=user.tasks, admin=user.admin)
     else:
         return redirect(url_for('view_index'))
 
