@@ -57,7 +57,7 @@ app.app_context().push()
 # -------------------- ROUTES --------------------
 @app.route('/', methods=['GET'])
 @app.route('/index', methods=['GET'])
-def page_index(form=None):
+def view_index(form=None):
     """ VIEW: Index page to handle registration, login and task creation """
     # TODO: Multiselect task create
     if session.get('user_name'):
@@ -78,29 +78,29 @@ def page_index(form=None):
 
 
 @app.route('/history')
-def page_history():
+def view_history():
     """ VIEW: Log of all tasks """
     # TODO: Implement with page hopping and next page btn etc.
     return render_template('history.html', active='history', tasks=Task.query.order_by(Task.time_created.desc()).all())
 
 
 @app.route('/about')
-def page_info():
+def view_info():
     """ VIEW: Information regarding site and author """
     return render_template('about.html', active='about')
 
 
 @app.route('/home')
-def page_home():
+def view_home():
     """ VIEW: User homepage, shows log of all tasks created by user """
     if session.get('user_name'):
         return render_template('home.html', tasks=User.query.filter_by(name=session['user_name']).first().tasks)
     else:
-        return redirect(url_for('page_index'))
+        return redirect(url_for('view_index'))
 
 
 @app.route('/task/<int:pid>')
-def page_task(pid):
+def view_task(pid):
     """ VIEW: Task specific information """
     if session.get('user_name'):
         task = Task.query.filter_by(id=pid).first()
@@ -108,12 +108,12 @@ def page_task(pid):
         return render_template('task.html', task=Task.query.filter_by(id=pid).first(), text=log_text)
     else:
         flash('Task not found.', 'warning')
-        return redirect(url_for('page_index'))
+        return redirect(url_for('view_index'))
 
 
 @app.errorhandler(404)
 @app.errorhandler(405)
-def page_error(msg):
+def view_error(msg):
     """ VIEW: Errorhandling """
     return render_template('error.html', error=msg)
 
@@ -205,7 +205,7 @@ def create_task():
             db.session.rollback()
             app.logger.exception('%s raised with file %s: \n' + str(xcpt), session['user_name'], form.file_name)
             flash(xcpt, 'danger')
-    return redirect(url_for('page_index'))
+    return redirect(url_for('view_index'))
 
 
 @app.route('/register', methods=['POST'])
@@ -228,7 +228,7 @@ def create_user():
             app.logger.info('User %s created successfully.', user.name)
             flash('User created successfully.', 'success')
 
-    return redirect(url_for('page_index'))
+    return redirect(url_for('view_index'))
 
 
 @app.route('/login', methods=['POST'])
@@ -252,7 +252,7 @@ def create_session():
         else:
             app.logger.info('%s tried to log in unsuccessfully.', user_name)
             flash('Incorrect login credentials.', 'warning')
-    return redirect(url_for('page_index'))
+    return redirect(url_for('view_index'))
 
 
 @app.route('/update/db')
@@ -267,7 +267,7 @@ def db_update_files():
             app.config['FILE_UPDATE_PROCESS'].start()
     except AttributeError:
         pass
-    return redirect(url_for('page_index'))
+    return redirect(url_for('view_index'))
 
 
 def get_log_path(file_path, task_id):
@@ -297,7 +297,7 @@ def download_log(task_id):
 @app.route('/logout')
 def logout():
     session.pop('user_name', None)
-    return redirect(url_for('page_index'))
+    return redirect(url_for('view_index'))
 
 
 @app.route('/favicon.ico')
@@ -355,7 +355,7 @@ class SessionModelView(ModelView):
         return User.query.filter_by(name=user_name).first().admin
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('page_index'))
+        return redirect(url_for('view_index'))
 
 
 class AdminHomeView(AdminIndexView):
@@ -379,7 +379,7 @@ class AdminHomeView(AdminIndexView):
                     flash('Invalid file!', 'warning')
             return self.render('admin/upload.html', form=form)
         else:
-            return redirect(url_for('page_index'))
+            return redirect(url_for('view_index'))
 
     def is_accessible(self):
         user_name = session.get('user_name')
@@ -388,7 +388,7 @@ class AdminHomeView(AdminIndexView):
         return User.query.filter_by(name=user_name).first().admin
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('page_index'))
+        return redirect(url_for('view_index'))
 
 
 # -------------------- MAIN --------------------
