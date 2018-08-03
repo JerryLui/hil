@@ -22,7 +22,7 @@
 												   class="link-aptiv" title="See task log">{{ task.id }}</a></th>
 								<td>{{ task.user.name }}</td>
 								<td>{{ task.file.name }}</td>
-								<td>{{ task.time_created.strftime('%y-%d-%m %H:%M') }}</td>
+								<td>{{ task.time_created.strftime('%y-%b-%d %H:%M') }}</td>
 								<td><a href="/task/{{ task.id }}" class="link-white" title="See task log">{{ task.status.name }}</a>
 								</td>
 							</tr>

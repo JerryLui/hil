@@ -28,8 +28,8 @@
 							{% else %}
 								<td>(deleted)</td>
 							{% endif %}
-							<td class="text-limit">{{ task.file.name }}</td>
-							<td>{{ task.time_created.strftime('%y-%d-%m %H:%M') }}</td>
+							<td>{{ task.file.name }}</td>
+							<td>{{ task.time_created.strftime('%y-%b-%d %H:%M') }}</td>
 							<td>
 								<a id="status-{{ task.id }}" href="task/{{ task.id }}" title="See task log" class="link-white">{{ task.status.name }}</a>
 							</td>
