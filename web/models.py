@@ -12,8 +12,8 @@ class User(db.Model):
     password = db.Column(db.String(128), nullable=False)
     admin = db.Column(db.Boolean, default=False, nullable=False)
 
-    def __init__(self, name, password):
-        super(User, self).__init__(name=name.lower(), password=generate_password_hash(password))
+    def __init__(self, name, password, admin=False):
+        super(User, self).__init__(name=name.lower(), password=generate_password_hash(password), admin=admin)
 
     def __repr__(self):
         return '<User: %r>' % self.name

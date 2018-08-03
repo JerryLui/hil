@@ -419,7 +419,7 @@ if __name__ == '__main__':
     _populate_table_status()
 
     if app.config['CREATE_ADMIN']:
-        user, exists = db_insert_or_get(User, name='admin', defaults={'password': 'admin123'})
+        user, exists = db_insert_or_get(User, name='admin', defaults={'password': 'admin123'}, admin=True)
         db.session.commit()
 
     admin = Admin(index_view=AdminHomeView(), template_mode='bootstrap3')
