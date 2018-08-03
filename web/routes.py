@@ -142,7 +142,7 @@ def update_task(pid):
 def create_task():
     form = TaskForm([(file.name, file.name) for file in File.query.all()])
 
-    if not form.validate():
+    if not form.validate_on_submit():
         flash('Invalid options!', 'warning')
     else:
         try:
@@ -174,7 +174,7 @@ def create_task():
 def create_user():
     form = UserForm(prefix='register')
 
-    if not form.validate():
+    if not form.validate_on_submit():
         flash('Invalid input.', 'warning')
     else:
         user, exists = db_insert_or_get(User, name=form.name.data, defaults={'password': form.password.data})
@@ -194,7 +194,7 @@ def create_user():
 def create_session():
     form = UserForm(prefix='login')
 
-    if not form.validate():
+    if not form.validate_on_submit():
         flash('Invalid input.', 'warning')
     else:
         user_name = form.name.data
@@ -292,6 +292,7 @@ class AdminHomeView(AdminIndexView):
         if session.get('user_name') == 'admin':
             return self.render('admin/index.html')
         else:
+            flash('Access denied!', 'danger')
             return redirect(url_for('page_index'))
 
 
@@ -324,6 +325,7 @@ if __name__ == '__main__':
                     SessionModelView(File, db.session),
                     SessionModelView(Task, db.session),
                     SessionModelView(Status, db.session))
+    admin.add_view(UploadFileView(name='Upload', endpoint='upload'))
     admin.init_app(app)
 
     app.run(host='10.239.125.100', port=5001, debug=True)
