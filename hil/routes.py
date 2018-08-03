@@ -17,7 +17,6 @@ from handlers import FakeProcess
 
 app = Flask('hil')
 
-
 # -------------------- DEVICE CONFIGURATION --------------------
 # Configure the following to fit the device
 app.config['DEVICE_HOST'] = '10.239.125.100'
