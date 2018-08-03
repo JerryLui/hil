@@ -1,8 +1,13 @@
 {% extends 'admin/master.html' %}
 {% block body %}
-	<div class="container">
+	<div class="container" style="margin: 50px;">
+		<div class="row">
 		<h1>Welcome to the admin page!</h1>
-		<h5>Select a column to edit the respective table.</h5>
-		<a href="/index" class="btn btn-primary" style="margin: 50px;">Go home</a>
+		<h5>Select a tab to edit the respective table.</h5>
+		</div>
+		<div class="row">
+			<a href="/index" class="btn btn-primary">Go home</a>
+			<a href="/admin/upload" class="btn btn-primary">Upload a file to HPCC</a>
+		</div>
 	</div>
 {% endblock %}

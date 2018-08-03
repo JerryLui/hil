@@ -13,16 +13,31 @@ from models import db, Task, File, User, Status
 from forms import TaskForm, UserForm, FileForm
 from handlers import FakeProcess
 
+
+app = Flask('hil')
+
+
+# -------------------- DEVICE CONFIGURATION --------------------
+# Configure the following to fit the device
+app.config['DEVICE_HOST'] = '10.239.125.100'
+app.config['DEVICE_PORT'] = 5005
+app.config['DEVICE_LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'
+
+app.config['CREATE_ADMIN'] = True
+
+
 # -------------------- APPLICATION CONFIGURATION --------------------
-app = Flask(__name__)
+# Server configuration
+# Ensure db folder exists in static
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///static/db/database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Application configuration
 app.secret_key = 'a3067a6f5bc2b743c88ef8'
 app.config['PROJECT_FOLDER'] = os.path.dirname(os.path.abspath(__file__))
 app.config['UPLOAD_FOLDER'] = os.path.join(app.config['PROJECT_FOLDER'], 'tmp', 'uploads')
-app.config['LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'
 
+# Process handling configuration
 app.config['OPS_LOCK'] = Lock()
 app.config['OPS_PIPE_PARENT'] = dict()
 app.config['OPS_PIPE_CHILD'] = dict()
@@ -41,6 +56,7 @@ app.app_context().push()
 @app.route('/', methods=['GET'])
 @app.route('/index', methods=['GET'])
 def page_index(form=None):
+    """ VIEW: Index page to handle registration, login and task creation """
     # TODO: Multiselect task create
     if session.get('user_name'):
         form = TaskForm([(file.name, file.name) for file in File.query.all()])
@@ -61,17 +77,20 @@ def page_index(form=None):
 
 @app.route('/history')
 def page_history():
+    """ VIEW: Log of all tasks """
     # TODO: Implement with page hopping and next page btn etc.
     return render_template('history.html', active='history', tasks=Task.query.order_by(Task.time_created.desc()).all())
 
 
 @app.route('/about')
 def page_info():
+    """ VIEW: Information regarding site and author """
     return render_template('about.html', active='about')
 
 
 @app.route('/home')
 def page_home():
+    """ VIEW: User homepage, shows log of all tasks created by user """
     if session.get('user_name'):
         return render_template('home.html', tasks=User.query.filter_by(name=session['user_name']).first().tasks)
     else:
@@ -80,6 +99,7 @@ def page_home():
 
 @app.route('/task/<int:pid>')
 def page_task(pid):
+    """ VIEW: Task specific information """
     if session.get('user_name'):
         return render_template('task.html', task=Task.query.filter_by(id=pid).first())
     else:
@@ -90,12 +110,19 @@ def page_task(pid):
 @app.errorhandler(404)
 @app.errorhandler(405)
 def page_error(msg):
+    """ VIEW: Errorhandling """
     return render_template('error.html', error=msg)
 
 
 # -------------------- OPERATIONS --------------------
 @app.route('/task/update/all')
 def update_all_tasks():
+    """
+    Updates current task status of all active tasks
+
+    :return : dict
+    Javascript friendly jsonified dictionary of all active tasks with its' respective status.
+    """
     # TODO: Schedule this function after starting a task (replace if with while loop with sleep inside)
     active_dict = dict()
 
@@ -110,8 +137,10 @@ def update_all_tasks():
 
 def update_task(pid):
     """
-    :returns : bool
-    If the process at pid is still alive.
+    Polls the process with pid for information regarding its' progress.
+
+    :return : bool
+    Whether or not the process at pid is still alive.
     """
     process = app.config['OPS_PROCESS'].get(pid)
     parent = app.config['OPS_PIPE_PARENT'].get(pid)
@@ -133,6 +162,7 @@ def update_task(pid):
         return True
     except (OSError, EOFError, BrokenPipeError):
         pass
+    # Close parent pipe and delete pipes from dict
     parent.close()
     del app.config['OPS_PIPE_PARENT'][pid], app.config['OPS_PIPE_CHILD'][pid]
     return False
@@ -140,6 +170,9 @@ def update_task(pid):
 
 @app.route('/create', methods=['POST'])
 def create_task():
+    """
+    Create a task and insert to db
+    """
     form = TaskForm([(file.name, file.name) for file in File.query.all()])
 
     if not form.validate_on_submit():
@@ -172,6 +205,9 @@ def create_task():
 
 @app.route('/register', methods=['POST'])
 def create_user():
+    """
+    Create a user and insert to db
+    """
     form = UserForm(prefix='register')
 
     if not form.validate_on_submit():
@@ -192,6 +228,9 @@ def create_user():
 
 @app.route('/login', methods=['POST'])
 def create_session():
+    """
+    Validate login and create session
+    """
     form = UserForm(prefix='login')
 
     if not form.validate_on_submit():
@@ -213,7 +252,10 @@ def create_session():
 
 @app.route('/update/db')
 def db_update_files():
-    """ Implement better way of detecting changes in file storage. """
+    """
+    Parallel way of updating file list
+    """
+    # TODO: Implement better way of detecting changes in file storage.
     try:
         if not app.config['FILE_UPDATE_PROCESS'].is_alive():
             app.config['FILE_UPDATE_PROCESS'] = Process(target=_populate_table_file())
@@ -223,8 +265,8 @@ def db_update_files():
     return redirect(url_for('page_index'))
 
 
-@app.route('/download/log/<filename>')
-def download_log(filename):
+@app.route('/download/log/<filename>/<task_id>')
+def download_log(filename, task_id):
     return filename
 
 
@@ -257,17 +299,21 @@ def db_insert_or_get(model, defaults=None, **kwargs):
 
 
 def _populate_table_file():
+    """ Populates File table by running _recursive_log_scan on DEVICE_LOG_FOLDER """
     [db_insert_or_get(File, name=log.name, path=log.path) for log in _recursive_log_scan()]
     db.session.commit()
 
 
 def _populate_table_status():
+    """ Insert STATUS_DICT into Status table """
     [db_insert_or_get(Status, name=name) for name in app.config['STATUS_DICT'][1:]]
     db.session.commit()
 
 
-def _recursive_log_scan(directory=app.config['LOG_DRIVE']):
+def _recursive_log_scan(directory=None):
     """ Iterator of all files ending with dvl in log_drive """
+    directory = directory or app.config['DEVICE_LOG_DRIVE']
+
     for entry in os.scandir(directory):
         if entry.is_dir(follow_symlinks=False):
             yield from _recursive_log_scan(entry)
@@ -277,28 +323,26 @@ def _recursive_log_scan(directory=app.config['LOG_DRIVE']):
 
 # -------------------- ADMIN --------------------
 class SessionModelView(ModelView):
-    """ Authenticates user for acces admin page. """
+    """ User authentication for admin view"""
     def is_accessible(self):
-        return session.get('user_name') == 'admin'
+        user_name = session.get('user_name')
+        if not user_name:
+            return False
+        return User.query.filter_by(name=user_name).first().admin
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('page_index'))
 
 
 class AdminHomeView(AdminIndexView):
-    """ Admin frontpage view. """
     @expose('/')
     def index(self):
-        if session.get('user_name') == 'admin':
-            return self.render('admin/index.html')
-        else:
-            flash('Access denied!', 'danger')
-            return redirect(url_for('page_index'))
+        """ VIEW: Admin index page """
+        return self.render('admin/index.html')
 
-
-class UploadFileView(BaseView):
-    @expose('/', methods=['POST', 'GET'])
-    def index(self):
+    @expose('/upload', methods=['POST', 'GET'])
+    def upload(self):
+        """ VIEW: Upload page """
         if session.get('user_name'):
             form = FileForm()
             if request.method == 'POST':
@@ -313,6 +357,15 @@ class UploadFileView(BaseView):
         else:
             return redirect(url_for('page_index'))
 
+    def is_accessible(self):
+        user_name = session.get('user_name')
+        if not user_name:
+            return False
+        return User.query.filter_by(name=user_name).first().admin
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('page_index'))
+
 
 # -------------------- MAIN --------------------
 if __name__ == '__main__':
@@ -320,12 +373,15 @@ if __name__ == '__main__':
     _populate_table_file()
     _populate_table_status()
 
+    if app.config['CREATE_ADMIN']:
+        user, exists = db_insert_or_get(User, name='admin', defaults={'password': 'admin123'})
+        db.session.commit()
+
     admin = Admin(index_view=AdminHomeView(), template_mode='bootstrap3')
     admin.add_views(SessionModelView(User, db.session),
                     SessionModelView(File, db.session),
                     SessionModelView(Task, db.session),
                     SessionModelView(Status, db.session))
-    admin.add_view(UploadFileView(name='Upload', endpoint='upload'))
     admin.init_app(app)
 
-    app.run(host='10.239.125.100', port=5001, debug=True)
+    app.run(host=app.config['DEVICE_HOST'], port=app.config['DEVICE_PORT'])
