@@ -4,6 +4,7 @@ instance/
 
 .pytest_cache/
 .coverage
+.db
 htmlcov/
 
 dist/
@@ -13,4 +14,3 @@ build/
 .idea/
 venv/
 uploads/
-db/
