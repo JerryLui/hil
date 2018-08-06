@@ -8,6 +8,6 @@ to_create = [os.path.join(file_folder, 'hil', 'tmp', 'uploads'),
 
 for folder in to_create:
     try:
-        os.mkdir(folder)
-    except OSError:
-        print('Folder already exists!')
+        os.makedirs(folder)
+    except OSError as xcpt:
+        print(folder, xcpt)
