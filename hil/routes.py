@@ -394,7 +394,14 @@ class AdminHomeView(AdminIndexView):
                 if form.validate():
                     file = form.file.data
                     file_name = secure_filename(file.filename)
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
+                    if form.path.data and os.path.exists(form.path.data):
+                        try:
+                            os.makedirs(form.path.data)
+                            file.save(form.path.data, file_name)
+                        except OSError:
+                            pass
+                    else:
+                        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
                     flash('File uploaded successfully.', 'success')
                 else:
                     flash('Invalid file!', 'warning')

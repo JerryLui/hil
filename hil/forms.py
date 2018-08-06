@@ -50,4 +50,5 @@ class PasswordForm(FlaskForm):
 
 class FileForm(FlaskForm):
     file = FileField(validators=[FileRequired("Please select a filed.")])
+    path = StringField('Upload to specific folder')
     submit = SubmitField('Upload')

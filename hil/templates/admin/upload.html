@@ -1,13 +1,21 @@
 {% extends "admin/master.html" %}
 {% block body %}
-	<div class="container" style="margin: 50px">
+	<div class="container" style="margin: 50px; width: 53vw;">
 		<h1>Upload a file to the server</h1>
 		<form method="post" enctype="multipart/form-data" action="/admin/upload/">
 			{{ form.hidden_tag() }}
 			<div class="form-group">
 				{{ form.file.label(class="form-text") }}
-				{{ form.file }}
+				{{ form.file(class="form-control") }}
 				{% for error in form.file.errors %}
+					<small class="text-warning">{{ error }}</small>
+				{% endfor %}
+			</div>
+			<div class="form-group">
+				{{ form.path.label(class="form-text") }}<br>
+				<label class="form-text" for="path"><small>Leave empty to upload to flash drive, not suitable for larger files.</smakll></label>
+				{{ form.path(class="form-control") }}
+				{% for error in form.path.errors %}
 					<small class="text-warning">{{ error }}</small>
 				{% endfor %}
 			</div>
