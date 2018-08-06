@@ -2,11 +2,11 @@
 {% block body %}
 	<div class="container" style="margin: 50px; width: 53vw;">
 		<h1>Upload a file to the server</h1>
-		<form method="post" enctype="multipart/form-data" action="/admin/upload/">
+		<form method="post" enctype="multipart/form-data" action="/admin/upload">
 			{{ form.hidden_tag() }}
 			<div class="form-group">
 				{{ form.file.label(class="form-text") }}
-				{{ form.file(class="form-control") }}
+				{{ form.file(class="form-control-file") }}
 				{% for error in form.file.errors %}
 					<small class="text-warning">{{ error }}</small>
 				{% endfor %}

@@ -392,17 +392,20 @@ class AdminHomeView(AdminIndexView):
             form = FileForm()
             if request.method == 'POST':
                 if form.validate():
-                    file = form.file.data
-                    file_name = secure_filename(file.filename)
-                    if form.path.data and os.path.exists(form.path.data):
-                        try:
-                            os.makedirs(form.path.data)
-                            file.save(form.path.data, file_name)
-                        except OSError:
-                            pass
-                    else:
-                        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
-                    flash('File uploaded successfully.', 'success')
+                    try:
+                        file = form.file.data
+                        file_name = secure_filename(file.filename)
+                        if form.path.data:
+                            if os.path.isdir(form.path.data):
+                                file.save(form.path.data, file_name)
+                            else:
+                                os.makedirs(form.path.data)
+                                file.save(form.path.data, file_name)
+                        else:
+                            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
+                        flash('File uploaded successfully.', 'success')
+                    except Exception as exc:
+                        flash('File upload failed: ' + str(exc), 'danger')
                 else:
                     flash('Invalid file!', 'warning')
             return self.render('admin/upload.html', form=form)
