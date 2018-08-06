@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "layout.html" import form_field %}
 {% block script %}
 	<script src="{{ url_for('static', filename='js/query_progress.js') }}"></script>
 {% endblock %}
@@ -64,24 +65,8 @@
 						<h3 class="header-adjust">Login</h3>
 						<div class="bg-transparent-78 form-medium">
 							{{ form[0].hidden_tag() }}
-							<div class="form-group">
-								{{ form[0].name.label(class="form-text") }}
-								{{ form[0].name(class="form-control", placeholder="Ex. mjbf4f") }}
-								{% if form[0].name.errors %}
-									{% for error in form[0].name.errors %}
-										<small class="text-warning">{{ error }}</small>
-									{% endfor %}
-								{% endif %}
-							</div>
-							<div class="form-group">
-								{{ form[0].password.label(class="form-text") }}
-								{{ form[0].password(class="form-control") }}
-								{% if form[0].password.errors %}
-									{% for error in form[0].password.errors %}
-										<small class="text-warning">{{ error }}</small>
-									{% endfor %}
-								{% endif %}
-							</div>
+							{{ form_field(form[0].name, placeholder='Ex. mjbf4f') }}
+							{{ form_field(form[0].password, placeholder='Password') }}
 							<div class="form-group">
 								{{ form[0].submit(class="btn btn-dark btn-custom") }}
 							</div>
@@ -91,24 +76,8 @@
 						<h3 class="header-adjust">Register</h3>
 						<div class="bg-transparent-78 form-medium">
 							{{ form[1].hidden_tag() }}
-							<div class="form-group">
-								{{ form[1].name.label(class="form-text") }}
-								{{ form[1].name(class="form-control", placeholder="Ex. mjbf4f") }}
-								{% if form[1].name.errors %}
-									{% for error in form[1].name.errors %}
-										<small class="text-warning">{{ error }}</small>
-									{% endfor %}
-								{% endif %}
-							</div>
-							<div class="form-group">
-								{{ form[1].password.label(class="form-text") }}
-								{{ form[1].password(class="form-control") }}
-								{% if form[1].errors %}
-									{% for error in form[1].password.errors %}
-										<small class="text-warning">{{ error }}</small>
-									{% endfor %}
-								{% endif %}
-							</div>
+							{{ form_field(form[1].name, placeholder='Ex. mjbf4f') }}
+							{{ form_field(form[1].password, placeholder='Password') }}
 							<div class="form-group">
 								{{ form[1].submit(class="btn btn-dark btn-custom") }}
 							</div>

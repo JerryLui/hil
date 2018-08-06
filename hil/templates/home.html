@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "layout.html" import large_task_table %}
 {% block content %}
 	<div class="container container-spaced-medium">
 		<div class="row">
@@ -9,33 +10,7 @@
 						<a class="btn link-aptiv float-right" href="admin">Admin Page</a>
 					{% endif %}
 				</h3>
-				<div class="table-large">
-					<table class="table table-striped table-dark bg-transparent-78 table-large">
-						<thead>
-						<tr>
-							<th scope="col">Id</th>
-							<th scope="col">User</th>
-							<th scope="col">Log</th>
-							<th scope="col">Time</th>
-							<th scope="col">Status</th>
-						</tr>
-						</thead>
-						<tbody>
-						{% for task in tasks %}
-							<tr>
-								<th scope="row"><a href="/task/{{ task.id }}"
-												   class="link-aptiv" title="See task log">{{ task.id }}</a></th>
-								<td>{{ task.user.name }}</td>
-								<td>{{ task.file.name }}</td>
-								<td>{{ task.time_created.strftime('%y-%b-%d %H:%M') }}</td>
-								<td><a href="/task/{{ task.id }}" class="link-white"
-									   title="See task log">{{ task.status.name }}</a>
-								</td>
-							</tr>
-						{% endfor %}
-						</tbody>
-					</table>
-				</div>
+				{{ large_task_table(tasks) }}
 			</div>
 		</div>
 	</div>

@@ -77,3 +77,56 @@
 {% endblock %}
 </body>
 </html>
+
+{# ---------- MACROS ---------- #}
+{% macro form_field(field, placeholder='') %}
+	<div class="form-group">
+		{{ field.label(class="form-text") }}
+		{{ field(class="form-control", placeholder=placeholder) }}
+
+		{% if field.errors %}
+			{% for error in field.errors %}
+				<small class="text-warning">{{ error }}</small>
+			{% endfor %}
+		{% endif %}
+	</div>
+{% endmacro %}
+
+{% macro large_task_table(tasks, limited=True) %}
+	{% if limited %}
+		<div class="table-large">
+			<table class="table table-striped table-dark bg-transparent-78 table-large">
+	{% else %}
+		<div>
+			<table class="table table-striped table-dark bg-transparent-78">
+	{% endif %}
+			<thead>
+			<tr>
+				<th scope="col">Id</th>
+				<th scope="col">User</th>
+				<th scope="col">Log</th>
+				<th scope="col">Time</th>
+				<th scope="col">Status</th>
+			</tr>
+			</thead>
+			<tbody>
+			{% for task in tasks %}
+				<tr>
+					<th scope="row"><a href="/task/{{ task.id }}"
+									   class="link-aptiv" title="See task log">{{ task.id }}</a></th>
+					{% if task.user.name %}
+						<td>{{ task.user.name }}</td>
+					{% else %}
+						<td>(deleted)</td>
+					{% endif %}
+					<td>{{ task.file.name }}</td>
+					<td>{{ task.time_created.strftime('%y-%b-%d %H:%M') }}</td>
+					<td><a href="/task/{{ task.id }}" class="link-white"
+						   title="See task log">{{ task.status.name }}</a>
+					</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endmacro %}
