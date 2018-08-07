@@ -20,17 +20,18 @@ from handlers import FakeProcess
 
 
 app = Flask('hil')
+app.debug = False
 
 # -------------------- DEVICE CONFIGURATION --------------------
 # Configure the following to fit the device
-app.config['DEVICE_HOST'] = '10.239.125.100'
-app.config['DEVICE_PORT'] = 5005
-app.config['DEVICE_LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'
+app.config['DEVICE_HOST'] = '10.239.125.100'    # Listening address, use device LAN-address
+app.config['DEVICE_PORT'] = 5005                # Port, ambiguous
+app.config['DEVICE_LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'  # Drive where the log files are stored
 
+# Initialization parameters, used for first run.
 app.config['CREATE_ADMIN'] = True                           # create an admin user during init
 app.config['ADMIN_CREDENTIALS'] = {'password': 'admin123'}  # admin credentials
 app.config['CREATE_DIRECTORIES'] = True                     # create empty directories for future use
-app.debug = False
 
 
 # -------------------- APPLICATION CONFIGURATION --------------------
