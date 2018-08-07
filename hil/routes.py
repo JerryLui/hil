@@ -1,3 +1,7 @@
+from gevent import monkey
+monkey.patch_all()
+
+from gevent import pywsgi
 from flask import Flask, render_template, flash, session, redirect, url_for, request, jsonify
 from flask import send_from_directory, send_file
 from flask_admin import Admin, AdminIndexView, expose
@@ -23,8 +27,10 @@ app.config['DEVICE_HOST'] = '10.239.125.100'
 app.config['DEVICE_PORT'] = 5005
 app.config['DEVICE_LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'
 
-app.config['CREATE_ADMIN'] = True
-app.debug = True
+app.config['CREATE_ADMIN'] = True                           # create an admin user during init
+app.config['ADMIN_CREDENTIALS'] = {'password': 'admin123'}  # admin credentials
+app.config['CREATE_DIRECTORIES'] = True                     # create empty directories for future use
+app.debug = False
 
 
 # -------------------- APPLICATION CONFIGURATION --------------------
@@ -424,14 +430,26 @@ class AdminHomeView(AdminIndexView):
 
 # -------------------- MAIN --------------------
 if __name__ == '__main__':
+    # Initial preparations, should probably refactor into separate config and create_app files
     db.create_all()
     _populate_table_file()
     _populate_table_status()
 
+    # Create an Admin user
     if app.config['CREATE_ADMIN']:
         user, exists = db_insert_or_get(User, name='admin', defaults={'password': 'admin123'}, admin=True)
         db.session.commit()
 
+    # Creates empty folders for use if they don't exist
+    if app.config['CREATE_DIRECTORIES']:
+        for folder in (os.path.join(app.config['PROJECT_FOLDER'], 'tmp', 'uploads'), \
+                       os.path.join(app.config['PROJECT_FOLDER'], 'static', 'db')):
+            try:
+                os.makedirs(folder)
+            except OSError as xcpt:
+                pass
+
+    # Add DB views
     admin = Admin(index_view=AdminHomeView(), template_mode='bootstrap3')
     admin.add_views(SessionModelView(User, db.session),
                     SessionModelView(File, db.session),
@@ -439,4 +457,7 @@ if __name__ == '__main__':
                     SessionModelView(Status, db.session))
     admin.init_app(app)
 
-    app.run(host=app.config['DEVICE_HOST'], port=app.config['DEVICE_PORT'])
+    # Start the server
+    # app.run(host=app.config['DEVICE_HOST'], port=app.config['DEVICE_PORT'])
+    server = pywsgi.WSGIServer((app.config['DEVICE_HOST'], app.config['DEVICE_PORT']), app)
+    server.serve_forever()
