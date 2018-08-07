@@ -1,5 +1,5 @@
 from multiprocessing import Process
-# from subprocess import *
+from subprocess import *
 
 import time
 import random
@@ -8,7 +8,7 @@ import os
 
 
 # -------------------- PROCESS --------------------
-class FakeProcess(Process):
+class Worker(Process):
     def __init__(self, file_path, task_id, log_path, lock, pipe):
         self.file_path = file_path
         self.task_id = task_id

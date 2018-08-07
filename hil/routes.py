@@ -16,7 +16,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from models import db, Task, File, User, Status
 from forms import TaskForm, UserForm, FileForm, PasswordForm
-from handlers import FakeProcess
+from handlers import Worker
 
 
 app = Flask('hil')
@@ -220,7 +220,7 @@ def create_task():
 
             # Start new process
             app.config['OPS_PIPE_PARENT'][new_task.id], app.config['OPS_PIPE_CHILD'][new_task.id] = Pipe(duplex=False)
-            app.config['OPS_PROCESS'][new_task.id] = FakeProcess(new_task.file.path,
+            app.config['OPS_PROCESS'][new_task.id] = Worker(new_task.file.path,
                                                                  new_task.id,
                                                                  get_log_path(new_task.file.path, new_task.id),
                                                                  app.config['OPS_LOCK'],
