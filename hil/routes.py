@@ -117,12 +117,23 @@ def view_home():
 @app.route('/task/<int:pid>')
 def view_task(pid):
     """ VIEW: Task specific information """
-    if session.get('user_name'):
-        task = Task.query.filter_by(id=pid).first()
+    task = Task.query.filter_by(id=pid).first()
+    if task:
         log_text = get_log_text(task.file.path, task.id)
-        return render_template('task.html', task=Task.query.filter_by(id=pid).first(), text=log_text)
+        return render_template('task.html', task=task, text=log_text)
     else:
         flash('Task not found.', 'warning')
+        return redirect(url_for('view_index'))
+
+
+@app.route('/suite/<int:sid>')
+def view_suite(sid):
+    """ VIEW: Suite info page """
+    suite = Suite.query.filter_by(id=sid).first()
+    if suite:
+        return render_template('suite.html', suite=suite)
+    else:
+        flash('Suite not found.', 'warning')
         return redirect(url_for('view_index'))
 
 

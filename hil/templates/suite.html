@@ -1,11 +1,14 @@
 {% extends "layout.html" %}
+{% from "layout.html" import task_table %}
 {% block content %}
+	{% set task = suite.tasks[0] %}
+	{% set dir_length =  task.file.path|length - task.file.name|length - 4 %}
 	<div class="container container-spaced-large">
 		<div class="row">
 			<div class="col-md-12">
-				<div class="card bg-transparent-78">
+				<div class="card bg-transparent-78" style="margin-bottom:2em">
 					<div class="card-body">
-						<h3 class="card-title">Task: {{ task.id }}</h3>
+						<h3 class="card-title">Suite: {{ suite.id }}</h3>
 						<p class="card-text">
 						<table>
 							<tr>
@@ -23,15 +26,9 @@
 								</td>
 							</tr>
 							<tr>
-								<td class="spaced"><strong>Suite:</strong></td>
+								<td class="spaced"><strong>Folder Path:</strong></td>
 								<td>
-									<a href="/suite/{{ task.suite.id }}" class="link-white">{{ task.suite.id }}</a>
-								</td>
-							</tr>
-							<tr>
-								<td class="spaced"><strong>Filename:</strong></td>
-								<td>
-									{{ task.file.name }}
+									{{ task.file.path|truncate(dir_length, True, '') }}
 								</td>
 							</tr>
 						</table>
@@ -62,16 +59,10 @@
 							</tr>
 						</table>
 						</p>
-						<h5 class="card-title">Log output:</h5>
-						<p class="card-text code-frame">
-							{% for entry in text %}
-								{{ entry }}<br>
-							{% endfor %}
-						</p>
-						<a class="card-text btn btn-link link-aptiv" href="/download/log/{{ task.id }}"
-						   style="margin-top: 9px">
-							Download Log
-						</a>
+						<h5 class="card-title">Logs run:
+							<a class="btn link-aptiv float-right" href="#">Download All</a>
+						</h5>
+							{{ task_table(suite.tasks, limited=False) }}
 					</div>
 				</div>
 			</div>
