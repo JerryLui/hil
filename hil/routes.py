@@ -1,6 +1,3 @@
-from gevent import monkey; monkey.patch_all()
-
-from gevent import pywsgi
 from flask import Flask, render_template, flash, session, redirect, url_for, request, jsonify
 from flask import send_from_directory, send_file
 from flask_admin import Admin, AdminIndexView, expose
@@ -460,6 +457,4 @@ if __name__ == '__main__':
     admin.init_app(app)
 
     # Start the server
-    # app.run(host=app.config['DEVICE_HOST'], port=app.config['DEVICE_PORT'])
-    server = pywsgi.WSGIServer((app.config['DEVICE_HOST'], app.config['DEVICE_PORT']), app)
-    server.serve_forever()
+    app.run(host=app.config['DEVICE_HOST'], port=app.config['DEVICE_PORT'])
