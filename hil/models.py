@@ -42,6 +42,10 @@ class Status(db.Model):
         return '<Status: %r>' % self.name
 
 
+class Suite(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     time_created = db.Column(db.DateTime, default=datetime.now, nullable=False)
@@ -52,9 +56,11 @@ class Task(db.Model):
     file = db.relationship('File', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     user = db.relationship('User', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
+    suite_id = db.Column(db.Integer, db.ForeignKey('suite.id', ondelete='SET NULL'), nullable=True)
+    suite = db.relationship('Suite', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
 
-    def __init__(self, status_id, file_id, user_id):
-        super(Task, self).__init__(status_id=status_id, file_id=file_id, user_id=user_id)
+    def __init__(self, status_id, file_id, user_id, suite_id):
+        super(Task, self).__init__(status_id=status_id, file_id=file_id, user_id=user_id, suite_id=suite_id)
 
     def __repr__(self):
         return '<Task id:%r status:%r>' % (self.id, self.status)

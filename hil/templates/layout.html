@@ -91,10 +91,15 @@
 	</div>
 {% endmacro %}
 
-{% macro large_task_table(tasks, limited=True) %}
+{% macro task_table(tasks, limited=True, small=False) %}
 	{% if limited %}
-		<div class="table-large">
-			<table class="table table-striped table-dark bg-transparent-78 table-large">
+		{% if small %}
+			<div class="table-medium">
+				<table class="table table-striped table-dark bg-transparent-78">
+		{% else %}
+			<div class="table-large">
+				<table class="table table-striped table-dark bg-transparent-78 table-large">
+		{% endif %}
 	{% else %}
 		<div>
 			<table class="table table-striped table-dark bg-transparent-78">
@@ -103,6 +108,7 @@
 			<tr>
 				<th scope="col">Id</th>
 				<th scope="col">User</th>
+				<th scope="col">Suite</th>
 				<th scope="col">Log</th>
 				<th scope="col">Time</th>
 				<th scope="col">Status</th>
@@ -118,7 +124,14 @@
 					{% else %}
 						<td>(deleted)</td>
 					{% endif %}
-					<td>{{ task.file.name }}</td>
+					<td>{{ task.suite.id }}</td>
+					<td>
+						{% if small %}
+							...{{ task.file.name[-36:] }}
+						{% else %}
+							{{ task.file.name }}
+						{% endif %}
+					</td>
 					<td>{{ task.time_created.strftime('%y-%b-%d %H:%M') }}</td>
 					<td><a href="/task/{{ task.id }}" class="link-white"
 						   title="See task log">{{ task.status.name }}</a>

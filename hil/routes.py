@@ -2,21 +2,22 @@ from flask import Flask, render_template, flash, session, redirect, url_for, req
 from flask import send_from_directory, send_file
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
+from sqlalchemy import func
 from werkzeug.utils import secure_filename
-from multiprocessing import Lock, Pipe, Process
+from multiprocessing import Lock, Pipe, Process, set_start_method
 
 import os
 import sys
 
 # Package specific imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from models import db, Task, File, User, Status
+from models import db, Task, File, User, Status, Suite
 from forms import TaskForm, UserForm, FileForm, PasswordForm
 from handlers import Worker
 
 
 app = Flask('hil')
-app.debug = False
+app.debug = True
 
 # -------------------- DEVICE CONFIGURATION --------------------
 # Configure the following to fit the device
@@ -63,7 +64,18 @@ def view_index(form=None):
     """ VIEW: Index page to handle registration, login and task creation """
     # TODO: Multiselect task create
     if session.get('user_name'):
-        form = TaskForm([(file.name, file.name) for file in File.query.all()])
+        if form:
+            if form._prefix == 'log-':
+                suite_form = _get_task_suite_form()
+                form = (form, suite_form)
+            elif form._prefix == 'suite-':
+                log_form = _get_task_log_form()
+                form = (log_form, form)
+        else:
+            log_form = _get_task_log_form()
+            suite_form = _get_task_suite_form()
+
+            form = (log_form, suite_form)
     else:
         # Render forms for registration/login if no session
         if form:    # Enables flash messages when called by another function
@@ -195,39 +207,59 @@ def update_task(pid):
     return False
 
 
-@app.route('/create', methods=['POST'])
-def create_task():
+@app.route('/create/<option>', methods=['POST'])
+def create_task(option):
     """
     Create a task and insert to db
     """
-    form = TaskForm([(file.name, file.name) for file in File.query.all()])
+    if option == 'suite':
+        form = _get_task_suite_form()
+    elif option == 'log':
+        form = _get_task_log_form()
+    else:
+        flash('Invalid request!', 'danger')
+        return redirect(url_for('view_index'))
 
     if not form.validate_on_submit():
         flash('Invalid submission!', 'warning')
+        return view_index(form)
     else:
         try:
             # Create new task with user and file and submit it to DB
-            user = db.session.query(User).filter_by(name=session['user_name']).first()
-            file = db.session.query(File).filter_by(name=form.file_name.data).first()
-            new_task = Task(status_id=1, file_id=file.id, user_id=user.id)
-            db.session.add(new_task)
-            db.session.commit()
-            flash('Task created!', 'success')
+            user = User.query.filter_by(name=session['user_name']).first()
+            if option == 'suite':
+                files = File.query.filter(File.path.startswith(form.file_name.data)).all()
 
-            # Start new process
-            app.config['OPS_PIPE_PARENT'][new_task.id], app.config['OPS_PIPE_CHILD'][new_task.id] = Pipe(duplex=False)
-            app.config['OPS_PROCESS'][new_task.id] = Worker(new_task.file.path,
-                                                                 new_task.id,
-                                                                 get_log_path(new_task.file.path, new_task.id),
-                                                                 app.config['OPS_LOCK'],
-                                                                 app.config['OPS_PIPE_CHILD'][new_task.id])
-            app.config['OPS_PROCESS'][new_task.id].start()
-            app.logger.info('%s created new task on file %s', user.name, file.name)
+                # New suite path
+                new_suite = Suite()
+                db.session.add(new_suite)
+                db.session.commit()
+
+                suite_id = new_suite.id
+            else:
+                files = [File.query.filter_by(name=form.file_name.data).first()]
+                suite_id = 1
+
+            for file in files:
+                new_task = Task(status_id=1, file_id=file.id, user_id=user.id, suite_id=suite_id)
+                db.session.add(new_task)
+                db.session.commit()
+
+                # Start new process
+                app.config['OPS_PIPE_PARENT'][new_task.id], app.config['OPS_PIPE_CHILD'][new_task.id] = Pipe(duplex=False)
+                app.config['OPS_PROCESS'][new_task.id] = Worker(new_task.file.path,
+                                                                     new_task.id,
+                                                                     get_log_path(new_task.file.path, new_task.id),
+                                                                     app.config['OPS_LOCK'],
+                                                                     app.config['OPS_PIPE_CHILD'][new_task.id])
+                app.config['OPS_PROCESS'][new_task.id].start()
+                app.logger.info('%s created new task on file %s', user.name, file.name)
+            flash('Task(s) created!', 'success')
 
         except Exception as xcpt:
             db.session.rollback()
             app.logger.exception('%s raised with file %s: \n' + str(xcpt), session['user_name'], form.file_name)
-            flash(xcpt, 'danger')
+            flash(str(xcpt), 'danger')
     return redirect(url_for('view_index'))
 
 
@@ -295,6 +327,27 @@ def db_update_files():
     return redirect(url_for('view_index'))
 
 
+@app.route('/download/log/<task_id>')
+def download_log(task_id):
+    """ Gives download file """
+    task = Task.query.filter_by(id=task_id).first()
+    log_path = get_log_path(task.file.path, task.id)
+    return send_file(log_path, as_attachment=True)
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user_name', None)
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('view_index'))
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('static/img', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+
+# -------------------- HELPERS --------------------
 def get_log_path(file_path, task_id):
     """
     :return : path
@@ -312,23 +365,27 @@ def get_log_text(file_path, task_id):
         return f.readlines()
 
 
-@app.route('/download/log/<task_id>')
-def download_log(task_id):
-    task = Task.query.filter_by(id=task_id).first()
-    log_path = get_log_path(task.file.path, task.id)
-    return send_file(log_path, as_attachment=True)
+def _sort_by_folder(file_list):
+    """
+    :return : dict
+    Dict sorted by file directories with list of directory contents as value
+    """
+    sorted_dict = dict()
+    for file in file_list:
+        file_dir = os.path.dirname(file.path)
+        if sorted_dict.get(file_dir):
+            sorted_dict.get(file_dir).append(file)
+        else:
+            sorted_dict[file_dir] = [file]
+    return sorted_dict
 
 
-@app.route('/logout')
-def logout():
-    session.pop('user_name', None)
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('view_index'))
+def _get_task_log_form():
+    return TaskForm([(file.name, file.name) for file in File.query.all()], prefix='log')
 
 
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory('static/img', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+def _get_task_suite_form():
+    return TaskForm([(k, os.path.split(k)[1]) for k in _sort_by_folder(File.query.all())], prefix='suite')
 
 
 # -------------------- DATABASE --------------------
@@ -357,6 +414,12 @@ def _populate_table_file():
 def _populate_table_status():
     """ Insert STATUS_DICT into Status table """
     [db_insert_or_get(Status, name=name) for name in app.config['STATUS_DICT'][1:]]
+    db.session.commit()
+
+
+def _populate_table_suite():
+    """ Add base suite to Suite table """
+    db_insert_or_get(Suite, id=1)
     db.session.commit()
 
 
@@ -433,6 +496,7 @@ if __name__ == '__main__':
     db.create_all()
     _populate_table_file()
     _populate_table_status()
+    _populate_table_suite()
 
     # Create an Admin user
     if app.config['CREATE_ADMIN']:
@@ -453,6 +517,7 @@ if __name__ == '__main__':
     admin.add_views(SessionModelView(User, db.session),
                     SessionModelView(File, db.session),
                     SessionModelView(Task, db.session),
+                    SessionModelView(Suite, db.session),
                     SessionModelView(Status, db.session))
     admin.init_app(app)
 

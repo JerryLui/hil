@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% from "layout.html" import large_task_table %}
+{% from "layout.html" import task_table %}
 {% block content %}
 	<div class="container container-spaced-medium">
 		<div class="row">
@@ -10,7 +10,7 @@
 						<a class="btn link-aptiv float-right" href="admin">Admin Page</a>
 					{% endif %}
 				</h3>
-				{{ large_task_table(tasks) }}
+				{{ task_table(tasks) }}
 			</div>
 		</div>
 	</div>
