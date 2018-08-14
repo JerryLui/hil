@@ -1,5 +1,4 @@
-from gevent import monkey
-monkey.patch_all()
+from gevent import monkey; monkey.patch_all()
 
 from gevent import pywsgi
 from flask import Flask, render_template, flash, session, redirect, url_for, request, jsonify
@@ -24,7 +23,7 @@ app.debug = False
 
 # -------------------- DEVICE CONFIGURATION --------------------
 # Configure the following to fit the device
-app.config['DEVICE_HOST'] = '10.239.125.100'    # Listening address, use device LAN-address
+app.config['DEVICE_HOST'] = '10.239.124.134'    # Listening address, use device LAN-address
 app.config['DEVICE_PORT'] = 5005                # Port, ambiguous
 app.config['DEVICE_LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'  # Drive where the log files are stored
 
@@ -207,7 +206,7 @@ def create_task():
     form = TaskForm([(file.name, file.name) for file in File.query.all()])
 
     if not form.validate_on_submit():
-        flash('Invalid options!', 'warning')
+        flash('Invalid submission!', 'warning')
     else:
         try:
             # Create new task with user and file and submit it to DB
@@ -244,6 +243,7 @@ def create_user():
 
     if not form.validate_on_submit():
         flash('Invalid input.', 'warning')
+        return view_index(form)
     else:
         user, exists = db_insert_or_get(User, name=form.name.data, defaults={'password': form.password.data})
         if exists:
@@ -267,6 +267,7 @@ def create_session():
 
     if not form.validate_on_submit():
         flash('Invalid input.', 'warning')
+        return view_index(form)
     else:
         user_name = form.name.data.lower()
         user_password = form.password.data
