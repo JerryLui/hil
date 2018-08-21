@@ -11,36 +11,37 @@
 			<!--Submit New Task Table-->
 			<div class="col-md-4">
 				{% if session['user_name'] %}
-					<form method="post" action="/create/log" id="form-task">
-						<h3 class="text-light header-adjust">Create new task</h3>
-						<div class="bg-transparent-78 form-medium">
+					<h3 class="text-light header-adjust">Create new task</h3>
+					<div class="bg-transparent-78 form-medium">
+						<form method="post" action="/create/log" id="form-task">
 							{{ form[0].hidden_tag() }}
 							{{ form_field(form[0].file) }}
 							{{ form_field(form[0].software) }}
 							<div class="form-group">
 								{{ form[0].submit(class="btn btn-dark btn-custom") }}
 							</div>
-					</form>
+						</form>
 
-					<div class="strike">
-						<span>OR</span>
-					</div>
+						<div class="strike">
+							<span>OR</span>
+						</div>
 
-					<form method="post" action="/create/suite" id="form-suite">
-						{{ form[1].hidden_tag() }}
-						<div class="form-group">
-							<label class="form-text" for="suite-file_name">Select folder</label>
-							{{ form[1].file(class="form-control", id="suiteSelector") }}
-						</div>
-						{{ form_field(form[1].software) }}
-						<div class="form-group">
-							{{ form[1].submit(class="btn btn-dark btn-custom") }}
-							<a href="{{ url_for('db_update_files') }}"
-							   class="btn btn-link link-aptiv float-right"
-							   title="Update log list, might take some time.">Update List</a>
-						</div>
+						<form method="post" action="/create/suite" id="form-suite">
+							{{ form[1].hidden_tag() }}
+							<div class="form-group">
+								<label class="form-text" for="suite-file_name">Select folder</label>
+								{{ form[1].file(class="form-control", id="suiteSelector") }}
+							</div>
+							{{ form_field(form[1].software) }}
+							<div class="form-group">
+								{{ form[1].submit(class="btn btn-dark btn-custom") }}
+								<a href="{{ url_for('db_update_files') }}"
+								   class="btn btn-link link-aptiv float-right"
+								   title="Update log list, might take some time.">Update List</a>
+							</div>
+
+						</form>
 					</div>
-					</form>
 
 				{% else %}
 					<form method="post" action="/login" id="form-login">
@@ -67,7 +68,7 @@
 					</form>
 					<p style="margin: 5px;">Note: A login is required to run tasks.</p>
 				{% endif %}
+			</div>
 		</div>
-	</div>
 	</div>
 {% endblock %}
