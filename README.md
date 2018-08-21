@@ -11,9 +11,7 @@ Finally run the application by running
 ```python3 routes.py```
 
 
-### Notice:
-Parent folders should not include logs, otherwise a run on folders will include all it's subfolders, should look something like the following.
-
+### Storage structure:
 ```
 log_folder
 ├── original_logs

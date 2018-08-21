@@ -241,6 +241,12 @@ def create_task(option):
             if option == 'suite':
                 files = File.query.filter(File.path.startswith(form.file_name.data)).all()
 
+                # Filter out subfolders
+                files = [file for file in files if os.path.split(file.path)[0] == form.file_name.data]
+
+                if not files:
+                    raise FileNotFoundError(2, 'No files found in suite.')
+
                 # New suite path
                 new_suite = Suite()
                 db.session.add(new_suite)
