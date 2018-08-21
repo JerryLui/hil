@@ -12,8 +12,11 @@ class User(db.Model):
     password = db.Column(db.String(128), nullable=False)
     admin = db.Column(db.Boolean, default=False, nullable=False)
 
-    def __init__(self, name, password, admin=False):
-        super(User, self).__init__(name=name.lower(), password=generate_password_hash(password), admin=admin)
+    def __init__(self, admin=False, **kwargs):
+        kwargs['name'] = kwargs['name'].lower()
+        kwargs['password'] = generate_password_hash(kwargs['password'])
+
+        super(User, self).__init__(admin=admin, **kwargs)
 
     def __repr__(self):
         return '<User: %r>' % self.name
@@ -42,6 +45,14 @@ class Status(db.Model):
         return '<Status: %r>' % self.name
 
 
+class Software(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False, unique=True)
+
+    def __repr__(self):
+        return '<Software: %r>' % self.name
+
+
 class Suite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -50,17 +61,16 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     time_created = db.Column(db.DateTime, default=datetime.now, nullable=False)
     time_update = db.Column(db.DateTime, onupdate=datetime.now)
-    status_id = db.Column(db.Integer, db.ForeignKey('status.id', ondelete='SET NULL'), nullable=True)
+    status_id = db.Column(db.Integer, db.ForeignKey('status.id', ondelete='SET NULL'), nullable=False)
     status = db.relationship('Status', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
-    file_id = db.Column(db.Integer, db.ForeignKey('file.id', ondelete='SET NULL'), nullable=True)
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id', ondelete='SET NULL'), nullable=False)
     file = db.relationship('File', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
     user = db.relationship('User', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
+    software_id = db.Column(db.Integer, db.ForeignKey('software.id', ondelete='SET NULL'), nullable=False)
+    software = db.relationship('Software', backref=db.backref('tasks', lazy=True, cascade='all, delete-orphan'))
     suite_id = db.Column(db.Integer, db.ForeignKey('suite.id', ondelete='SET NULL'), nullable=True)
     suite = db.relationship('Suite', backref=db.backref('tasks', lazy=True, cascade="all, delete-orphan"))
-
-    def __init__(self, status_id, file_id, user_id, suite_id):
-        super(Task, self).__init__(status_id=status_id, file_id=file_id, user_id=user_id, suite_id=suite_id)
 
     def __repr__(self):
         return '<Task id:%r status:%r>' % (self.id, self.status)

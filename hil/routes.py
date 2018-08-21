@@ -11,7 +11,7 @@ import sys
 
 # Package specific imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from models import db, Task, File, User, Status, Suite
+from models import db, Task, File, User, Status, Suite, Software
 from forms import TaskForm, UserForm, FileForm, PasswordForm
 from handlers import Worker
 
@@ -24,6 +24,7 @@ app.debug = True
 app.config['DEVICE_HOST'] = '10.239.124.134'    # Listening address, use device LAN-address
 app.config['DEVICE_PORT'] = 5005                # Port, ambiguous
 app.config['DEVICE_LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'  # Drive where the log files are stored
+app.config['DEVICE_SW_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives\Software'
 
 # Initialization parameters, used for first run.
 app.config['CREATE_ADMIN'] = True                           # create an admin user during init
@@ -238,27 +239,32 @@ def create_task(option):
         try:
             # Create new task with user and file and submit it to DB
             user = User.query.filter_by(name=session['user_name']).first()
+            software = Software.query.filter_by(name=form.software.data).first()
+
             if option == 'suite':
-                files = File.query.filter(File.path.startswith(form.file_name.data)).all()
+                files = File.query.filter(File.path.startswith(form.file.data)).all()
 
                 # Filter out subfolders
-                files = [file for file in files if os.path.split(file.path)[0] == form.file_name.data]
+                files = [file for file in files if os.path.split(file.path)[0] == form.file.data]
 
                 if not files:
                     raise FileNotFoundError(2, 'No files found in suite.')
 
-                # New suite path
-                new_suite = Suite()
-                db.session.add(new_suite)
-                db.session.commit()
+                if len(files) == 1:
+                    suite_id = None
+                else:
+                    # New suite path
+                    new_suite = Suite()
+                    db.session.add(new_suite)
+                    db.session.commit()
 
-                suite_id = new_suite.id
+                    suite_id = new_suite.id
             else:
-                files = [File.query.filter_by(name=form.file_name.data).first()]
-                suite_id = 1
+                files = [File.query.filter_by(name=form.file.data).first()]
+                suite_id = None
 
             for file in files:
-                new_task = Task(status_id=1, file_id=file.id, user_id=user.id, suite_id=suite_id)
+                new_task = Task(status_id=1, file_id=file.id, user_id=user.id, suite_id=suite_id, software_id=software.id)
                 db.session.add(new_task)
                 db.session.commit()
 
@@ -275,7 +281,7 @@ def create_task(option):
 
         except Exception as xcpt:
             db.session.rollback()
-            app.logger.exception('%s raised with file %s: \n' + str(xcpt), session['user_name'], form.file_name)
+            app.logger.exception('%s raised with file %s: \n' + str(xcpt), session['user_name'], form.file)
             flash(str(xcpt), 'danger')
     return redirect(url_for('view_index'))
 
@@ -398,11 +404,15 @@ def _sort_by_folder(file_list):
 
 
 def _get_task_log_form():
-    return TaskForm([(file.name, file.name) for file in File.query.all()], prefix='log')
+    return TaskForm(file_choices=[(file.name, file.name) for file in File.query.all()],
+                    sw_choices=[(sw.name, sw.name) for sw in Software.query.all()],
+                    prefix='log')
 
 
 def _get_task_suite_form():
-    return TaskForm([(k, os.path.split(k)[1]) for k in _sort_by_folder(File.query.all())], prefix='suite')
+    return TaskForm(file_choices=[(k, os.path.split(k)[1]) for k in _sort_by_folder(File.query.all())],
+                    sw_choices=[(sw.name, sw.name) for sw in Software.query.all()],
+                    prefix='suite')
 
 
 # -------------------- DATABASE --------------------
@@ -423,8 +433,8 @@ def db_insert_or_get(model, defaults=None, **kwargs):
 
 
 def _populate_table_file():
-    """ Populates File table by running _recursive_log_scan on DEVICE_LOG_FOLDER """
-    [db_insert_or_get(File, name=log.name, path=log.path) for log in _recursive_log_scan()]
+    """ Populates File table by running _recursive_log_scan on DEVICE_LOG_DRIVE """
+    [db_insert_or_get(File, name=log.name, path=log.path) for log in _recursive_scan()]
     db.session.commit()
 
 
@@ -434,25 +444,29 @@ def _populate_table_status():
     db.session.commit()
 
 
-def _populate_table_suite():
-    """ Add base suite to Suite table """
-    db_insert_or_get(Suite, id=1)
+def _populate_table_software():
+    """ Populate Software table by searching for software in DEVICE_SW_DRIVE """
+    [db_insert_or_get(Software, name=file.name) for file in _recursive_scan(app.config['DEVICE_SW_DRIVE'], '.exe')]
     db.session.commit()
 
 
-def _recursive_log_scan(directory=None):
+def _recursive_scan(directory=None, file_extension='.dvl'):
     """ Iterator of all files ending with dvl in log_drive """
     directory = directory or app.config['DEVICE_LOG_DRIVE']
 
     for entry in os.scandir(directory):
         if entry.is_dir(follow_symlinks=False):
-            yield from _recursive_log_scan(entry)
-        elif os.path.splitext(entry.name)[1] == '.dvl':
+            yield from _recursive_scan(entry)
+        elif os.path.splitext(entry.name)[1] == file_extension:
             yield entry
 
 
 # -------------------- ADMIN --------------------
 class SessionModelView(ModelView):
+    def __init__(self, model, session, column_list=None, **kwargs):
+        self.column_list = column_list
+        super(SessionModelView, self).__init__(model, session, **kwargs)
+
     """ User authentication for admin view"""
     def is_accessible(self):
         user_name = session.get('user_name')
@@ -513,7 +527,7 @@ if __name__ == '__main__':
     db.create_all()
     _populate_table_file()
     _populate_table_status()
-    _populate_table_suite()
+    _populate_table_software()
 
     # Create an Admin user
     if app.config['CREATE_ADMIN']:
@@ -534,8 +548,9 @@ if __name__ == '__main__':
     admin.add_views(SessionModelView(User, db.session),
                     SessionModelView(File, db.session),
                     SessionModelView(Task, db.session),
-                    SessionModelView(Suite, db.session),
-                    SessionModelView(Status, db.session))
+                    SessionModelView(Software, db.session),
+                    SessionModelView(Suite, db.session, column_list=('id',)),
+                    SessionModelView(Status, db.session, column_list=('id', 'name')))
     admin.init_app(app)
 
     # Start the server

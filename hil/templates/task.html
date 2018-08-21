@@ -18,20 +18,28 @@
 							</tr>
 							<tr>
 								<td class="spaced"><strong>Status:</strong></td>
-								<td>
+								<td id="status-{{ task.id }}">
 									{{ task.status.name }}
 								</td>
 							</tr>
+							{% if task.suite %}
 							<tr>
 								<td class="spaced"><strong>Suite:</strong></td>
 								<td>
 									<a href="/suite/{{ task.suite.id }}" class="link-white">{{ task.suite.id }}</a>
 								</td>
 							</tr>
+							{% endif %}
 							<tr>
 								<td class="spaced"><strong>Filename:</strong></td>
 								<td>
 									{{ task.file.name }}
+								</td>
+							</tr>
+							<tr>
+								<td class="spaced"><strong>Software:</strong></td>
+								<td>
+									{{ task.software.name }}
 								</td>
 							</tr>
 						</table>

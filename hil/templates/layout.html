@@ -27,6 +27,7 @@
 
 	<!--Custom scripts-->
 	<script src="{{ url_for('static', filename='js/alert.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/query_progress.js') }}"></script>
 
 	{% block script %}
 	{% endblock %}
@@ -139,12 +140,14 @@
 							<td><a href="/suite/{{ task.suite.id }}" class="link-white">{{ task.suite.id }}</a></td>
 						{% endif %}
 					<td>{{ task.time_created.strftime('%y-%b-%d %H:%M') }}</td>
-					<td><a href="/task/{{ task.id }}" class="link-white"
-						   title="See task log">{{ task.status.name }}</a>
+					<td>
+						<a href="/task/{{ task.id }}" class="link-white"
+						   title="See task log" id="status-{{ task.id }}">{{ task.status.name }}</a>
 					</td>
 				</tr>
 			{% endfor %}
 			</tbody>
 		</table>
 	</div>
+	<div style="margin-bottom: 2em;"></div>
 {% endmacro %}

@@ -6,14 +6,20 @@ from wtforms.validators import InputRequired, Length
 
 class TaskForm(FlaskForm):
     submit = SubmitField('Submit')
-    file_name = SelectField(
+    file = SelectField(
             'Select file',
             validators=[InputRequired("Please select a file.")]
     )
 
-    def __init__(self, choices, *args, **kwargs):
+    software = SelectField(
+            'Select software',
+            validators=[InputRequired("Please select a software.")]
+    )
+
+    def __init__(self, file_choices, sw_choices, *args, **kwargs):
         super(TaskForm, self).__init__(*args, **kwargs)
-        self.file_name.choices = choices
+        self.file.choices = file_choices
+        self.software.choices = sw_choices
 
 
 class UserForm(FlaskForm):

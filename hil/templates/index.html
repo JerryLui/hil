@@ -1,8 +1,5 @@
 {% extends "layout.html" %}
 {% from "layout.html" import form_field, task_table %}
-{% block script %}
-	<script src="{{ url_for('static', filename='js/query_progress.js') }}"></script>
-{% endblock %}
 {% block content %}
 	<div class="container container-spaced-medium">
 		<div class="row">
@@ -18,20 +15,24 @@
 						<h3 class="text-light header-adjust">Create new task</h3>
 						<div class="bg-transparent-78 form-medium">
 							{{ form[0].hidden_tag() }}
-							{{ form_field(form[0].file_name) }}
+							{{ form_field(form[0].file) }}
+							{{ form_field(form[0].software) }}
 							<div class="form-group">
 								{{ form[0].submit(class="btn btn-dark btn-custom") }}
 							</div>
 					</form>
+
 					<div class="strike">
 						<span>OR</span>
 					</div>
+
 					<form method="post" action="/create/suite" id="form-suite">
 						{{ form[1].hidden_tag() }}
 						<div class="form-group">
 							<label class="form-text" for="suite-file_name">Select folder</label>
-							{{ form[1].file_name(class="form-control", id="suiteSelector") }}
+							{{ form[1].file(class="form-control", id="suiteSelector") }}
 						</div>
+						{{ form_field(form[1].software) }}
 						<div class="form-group">
 							{{ form[1].submit(class="btn btn-dark btn-custom") }}
 							<a href="{{ url_for('db_update_files') }}"
@@ -40,6 +41,7 @@
 						</div>
 					</div>
 					</form>
+
 				{% else %}
 					<form method="post" action="/login" id="form-login">
 						<h3 class="header-adjust">Login</h3>

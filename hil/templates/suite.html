@@ -21,14 +21,20 @@
 							</tr>
 							<tr>
 								<td class="spaced"><strong>Status:</strong></td>
-								<td>
-									{{ task.status.name }}
+								<td id="status-{{ task.id }}">
+									HOLD
 								</td>
 							</tr>
 							<tr>
 								<td class="spaced"><strong>Folder Path:</strong></td>
 								<td>
 									{{ task.file.path|truncate(dir_length, True, '') }}
+								</td>
+							</tr>
+							<tr>
+								<td class="spaced"><strong>Software:</strong></td>
+								<td>
+									{{ task.software.name }}
 								</td>
 							</tr>
 						</table>
@@ -62,7 +68,7 @@
 						<h5 class="card-title">Logs run:
 							<a class="btn link-aptiv float-right" href="#">Download All</a>
 						</h5>
-							{{ task_table(suite.tasks, limited=False) }}
+						{{ task_table(suite.tasks, limited=False) }}
 					</div>
 				</div>
 			</div>
