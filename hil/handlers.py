@@ -9,8 +9,9 @@ import os
 
 # -------------------- PROCESS --------------------
 class Worker(Process):
-    def __init__(self, file_path, task_id, log_path, lock, pipe):
+    def __init__(self, file_path, software_path, task_id, log_path, lock, pipe):
         self.file_path = file_path
+        self.software_path = software_path
         self.task_id = task_id
         self.log_path = log_path
         self.lock = lock
@@ -26,7 +27,8 @@ class Worker(Process):
         logger.setLevel(logging.DEBUG)
         logger.info('Logging initialized on %s.' % self.file_path)
 
-        logger.info('Starting run...')
+        logger.info('Running software: ' + self.software_path)
+        logger.info('Starting run log: ' + self.file_path)
         self.pipe.send(2)
         time.sleep(random.randint(3, 4))
 

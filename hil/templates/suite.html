@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% from "layout.html" import task_table %}
+{% block script %}
+	<script src="{{ url_for('static', filename='js/filter_status.js') }}"></script>
+{% endblock %}
 {% block content %}
 	{% set task = suite.tasks[0] %}
 	{% set dir_length =  task.file.path|length - task.file.name|length - 4 %}
@@ -21,7 +24,7 @@
 							</tr>
 							<tr>
 								<td class="spaced"><strong>Status:</strong></td>
-								<td id="status-{{ task.id }}">
+								<td id="status-sum">
 									HOLD
 								</td>
 							</tr>

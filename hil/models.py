@@ -30,8 +30,8 @@ class User(db.Model):
 
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(250), nullable=False)
-    path = db.Column(db.String(250), nullable=False, unique=True)
+    name = db.Column(db.String(255), nullable=False)
+    path = db.Column(db.String(255), nullable=False, unique=True)
 
     def __repr__(self):
         return '<File: %r>' % self.path
@@ -48,6 +48,7 @@ class Status(db.Model):
 class Software(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
+    path = db.Column(db.String(255), nullable=False, unique=True)
 
     def __repr__(self):
         return '<Software: %r>' % self.name

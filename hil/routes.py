@@ -271,10 +271,11 @@ def create_task(option):
                 # Start new process
                 app.config['OPS_PIPE_PARENT'][new_task.id], app.config['OPS_PIPE_CHILD'][new_task.id] = Pipe(duplex=False)
                 app.config['OPS_PROCESS'][new_task.id] = Worker(new_task.file.path,
-                                                                     new_task.id,
-                                                                     get_log_path(new_task.file.path, new_task.id),
-                                                                     app.config['OPS_LOCK'],
-                                                                     app.config['OPS_PIPE_CHILD'][new_task.id])
+                                                                new_task.software.path,
+                                                                new_task.id,
+                                                                get_log_path(new_task.file.path, new_task.id),
+                                                                app.config['OPS_LOCK'],
+                                                                app.config['OPS_PIPE_CHILD'][new_task.id])
                 app.config['OPS_PROCESS'][new_task.id].start()
                 app.logger.info('%s created new task on file %s', user.name, file.name)
             flash('Task(s) created!', 'success')
@@ -446,7 +447,7 @@ def _populate_table_status():
 
 def _populate_table_software():
     """ Populate Software table by searching for software in DEVICE_SW_DRIVE """
-    [db_insert_or_get(Software, name=file.name) for file in _recursive_scan(app.config['DEVICE_SW_DRIVE'], '.exe')]
+    [db_insert_or_get(Software, name=file.name, path=file.path) for file in _recursive_scan(app.config['DEVICE_SW_DRIVE'], '.exe')]
     db.session.commit()
 
 
