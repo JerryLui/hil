@@ -109,9 +109,8 @@
 			<tr>
 				<th scope="col">Id</th>
 				<th scope="col">User</th>
-				<th scope="col">Log</th>
-				{% if not small %}<th scope="col">Suite</th>{% endif %}
-				<th scope="col">Time</th>
+				<th scope="col">Log / Suite</th>
+				<th scope="col">Time Started</th>
 				<th scope="col">Status</th>
 			</tr>
 			</thead>
@@ -125,26 +124,15 @@
 					{% else %}
 						<td>(deleted)</td>
 					{% endif %}
-						{% if small %}
-							<td class="text-limit">
+                        <td><a href="/task/{{ task.id }}" class="link-white">
                             {% if task.files|length > 1 %}
                                 Suite {{ task.id }}
-							{% elif task.files[0].name|length > 32 %}
-								{{ task.files[0].name[32:] }}...
-							{% else %}
-								{{ task.files[0].name }}
-							{% endif %}
-							</td>
-						{% else %}
-							<td>
-                                {% if task.files|length > 1 %}
-                                    Suite {{ task.id }}
-                                {% else %}
-                                    {{ task.files[0].name }}
-                                {% endif %}
-							</td>
-							<td><a href="/suite/{{ task.suite.id }}" class="link-white">{{ task.suite.id }}</a></td>
-						{% endif %}
+                            {% elif task.files[0].name|length > 32 %}
+                                {{ task.files[0].name[32:] }}...
+                            {% else %}
+                                {{ task.files[0].name }}
+                            {% endif %}
+                        </a></td>
 					<td>{{ task.time_created.strftime('%y-%b-%d %H:%M') }}</td>
 					<td>
 						<a href="/task/{{ task.id }}" class="link-white"

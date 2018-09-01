@@ -43,6 +43,7 @@ class Worker(Process):
             logger.info('Starting run on: %s.' % file)
             self.pipe.send(3)
             time.sleep(random.randint(5, 10))
+            logger.info('Log finished.')
 
         # Validate log
         if random.randint(0, 5):

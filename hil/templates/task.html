@@ -1,88 +1,92 @@
 {% extends "layout.html" %}
 {% block content %}
-	<div class="container container-spaced-large">
-		<div class="row">
-			<div class="col-md-12">
-				<div class="card bg-transparent-78">
-					<div class="card-body">
-						<h3 class="card-title">Task: {{ task.id }}</h3>
-						<p class="card-text">
-						<table>
-							<tr>
-								<td class="spaced">
-									<strong>User:</strong>
-								</td>
-								<td>
-									{{ task.user.name }}
-								</td>
-							</tr>
-							<tr>
-								<td class="spaced"><strong>Status:</strong></td>
-								<td id="status-{{ task.id }}">
-									{{ task.status.name }}
-								</td>
-							</tr>
-							{% if task.suite %}
-							<tr>
-								<td class="spaced"><strong>Suite:</strong></td>
-								<td>
-									<a href="/suite/{{ task.suite.id }}" class="link-white">{{ task.suite.id }}</a>
-								</td>
-							</tr>
-							{% endif %}
-							<tr>
-								<td class="spaced"><strong>Filename:</strong></td>
-								<td>
-									{{ task.file.name }}
-								</td>
-							</tr>
-							<tr>
-								<td class="spaced"><strong>Software:</strong></td>
-								<td>
-									{{ task.software.name }}
-								</td>
-							</tr>
-						</table>
-						</p>
-						<p class="card-text">
-						<table>
-							<tr>
-								<td class="spaced"><strong>Time Started:</strong></td>
-								<td>
-									{{ task.time_created.strftime('%y-%b-%d, %H:%M') }}
-								</td>
-							</tr>
-							<tr>
-								<td class="spaced">
-									<strong>Time Updated:</strong>
-								</td>
-								<td>
-									{{ task.time_update.strftime('%y-%b-%d, %H:%M') }}
-								</td>
-							</tr>
-							<tr>
-								<td class="spaced">
-									<strong>Time Elapsed:</strong>
-								</td>
-								<td>
-									{{ "{:.2f} Minutes".format((task.time_update - task.time_created).seconds / 60) }}
-								</td>
-							</tr>
-						</table>
-						</p>
-						<h5 class="card-title">Log output:</h5>
-						<p class="card-text code-frame">
-							{% for entry in text %}
-								{{ entry }}<br>
-							{% endfor %}
-						</p>
-						<a class="card-text btn btn-link link-aptiv" href="/download/log/{{ task.id }}"
-						   style="margin-top: 9px">
-							Download Log
-						</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+    <div class="container container-spaced-large">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card bg-transparent-78">
+                    <div class="card-body">
+                        <h3 class="card-title">Task: {{ task.id }}</h3>
+                        <p class="card-text">
+                        <table>
+                            <tr>
+                                <td class="spaced">
+                                    <strong>User:</strong>
+                                </td>
+                                <td>
+                                    {{ task.user.name }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="spaced"><strong>Status:</strong></td>
+                                <td id="status-{{ task.id }}">
+                                    {{ task.status.name }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="spaced"><strong>Software:</strong></td>
+                                <td>
+                                    {{ task.software.name }}
+                                </td>
+                            </tr>
+                            <tr>
+                                {% if task.files|length > 1 %}
+                                    <td class="spaced" style="vertical-align: top"><strong>Files:</strong></td>
+                                    <td>
+                                        {{ task.files|length }}
+                                    </td>
+                                {% else %}
+                                    <td class="spaced"><strong>Filename:</strong></td>
+                                    <td>
+                                        {{ task.files[0].name }}
+                                    </td>
+                                {% endif %}
+                            </tr>
+                            {% if task.files|length > 1 %}
+                                <tr>
+                                    <td class="spaced"><strong>Folder:</strong>
+                                    </td>
+                                    <td>
+                                        {{ dirname }}
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </table>
+                        </p>
+                        <p class="card-text">
+                        <table>
+                            <tr>
+                                <td class="spaced"><strong>Time Started:</strong></td>
+                                <td>
+                                    {{ task.time_created.strftime('%y-%b-%d, %H:%M') }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="spaced">
+                                    <strong>Time Updated:</strong>
+                                </td>
+                                <td>
+                                    {{ task.time_update.strftime('%y-%b-%d, %H:%M') }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="spaced">
+                                    <strong>Time Elapsed:</strong>
+                                </td>
+                                <td>
+                                    {{ "{:.2f} Minutes".format((task.time_update - task.time_created).seconds / 60) }}
+                                </td>
+                            </tr>
+                        </table>
+                        </p>
+                        <h5 class="card-title">Log output: <a class="btn link-aptiv float-right" href="/download/log/{{ task.id }}">Download Log</a></h5>
+                        <p class="card-text code-frame">
+                            {% for entry in text %}
+                                {{ entry }}<br>
+                            {% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

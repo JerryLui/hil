@@ -15,22 +15,20 @@ from models import db, Task, File, User, Status, Software
 from forms import TaskForm, UserForm, FileForm, PasswordForm
 from handlers import Worker
 
-
 app = Flask('hil')
 app.debug = True
 
 # -------------------- DEVICE CONFIGURATION --------------------
 # Configure the following to fit the device
-app.config['DEVICE_HOST'] = ''    # Listening address, use device LAN-address
-app.config['DEVICE_PORT'] = 5005                # Port, ambiguous
+app.config['DEVICE_HOST'] = ''  # Listening address, use device LAN-address
+app.config['DEVICE_PORT'] = 5005  # Port, ambiguous
 app.config['DEVICE_LOG_DRIVE'] = r'D:\Documents\Code\tmp\Logs'  # Drive where the log files are stored
 app.config['DEVICE_SW_DRIVE'] = r'D:\Documents\Code\tmp\SW'
 
 # Initialization parameters, used for first run.
-app.config['CREATE_ADMIN'] = True                           # create an admin user during init
+app.config['CREATE_ADMIN'] = True  # create an admin user during init
 app.config['ADMIN_CREDENTIALS'] = {'password': 'admin123'}  # admin credentials
-app.config['CREATE_DIRECTORIES'] = True                     # create empty directories for future use
-
+app.config['CREATE_DIRECTORIES'] = True  # create empty directories for future use
 
 # -------------------- APPLICATION CONFIGURATION --------------------
 # Server configuration
@@ -79,7 +77,7 @@ def view_index(form=None):
             form = (log_form, suite_form)
     else:
         # Render forms for registration/login if no session
-        if form:    # Enables flash messages when called by another function
+        if form:  # Enables flash messages when called by another function
             if form._prefix == 'login-':
                 form = (form, UserForm(prefix='register'))
             elif form._prefix == 'register-':
@@ -120,21 +118,10 @@ def view_task(pid):
     """ VIEW: Task specific information """
     task = Task.query.filter_by(id=pid).first()
     if task:
-        log_text = get_log_text(task.file.path, task.id)
-        return render_template('task.html', task=task, text=log_text)
+        return render_template('task.html', task=task, text=get_log_text(task),
+                               dirname=os.path.dirname(task.files[0].path))
     else:
         flash('Task not found.', 'warning')
-        return redirect(url_for('view_index'))
-
-
-@app.route('/suite/<int:sid>')
-def view_suite(sid):
-    """ VIEW: Suite info page """
-    task = Task.query.filter_by(id=sid).first()
-    if task:
-        return render_template('suite.html', suite=task)
-    else:
-        flash('Suite not found.', 'warning')
         return redirect(url_for('view_index'))
 
 
@@ -443,7 +430,7 @@ def _populate_table_files(model):
     # Paths that have been deleted from host but still exist in DB
     paths_deleted = paths_existing - paths_found
     for path in paths_deleted:
-        model.query.filter_by(path=path).update({'stored': False}) # TODO: TEST
+        model.query.filter_by(path=path).update({'stored': False})  # TODO: TEST
 
     # Paths that are found and exists in DB
     for path in paths_found and paths_existing:
@@ -486,6 +473,7 @@ class SessionModelView(ModelView):
         super(SessionModelView, self).__init__(model, session, **kwargs)
 
     """ User authentication for admin view"""
+
     def is_accessible(self):
         user_name = session.get('user_name')
         if not user_name:
