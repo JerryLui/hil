@@ -344,7 +344,7 @@ def db_update_files():
     # TODO: Implement better way of detecting changes in file storage.
     try:
         if not app.config['FILE_UPDATE_PROCESS'].is_alive():
-            app.config['FILE_UPDATE_PROCESS'] = Process(target=_populate_table_file())
+            app.config['FILE_UPDATE_PROCESS'] = Process(target=_populate_table_files(File))
             app.config['FILE_UPDATE_PROCESS'].start()
     except AttributeError:
         pass
@@ -433,21 +433,42 @@ def db_insert_or_get(model, defaults=None, **kwargs):
         return instance, False
 
 
-def _populate_table_file():
-    """ Populates File table by running _recursive_log_scan on DEVICE_LOG_DRIVE """
-    [db_insert_or_get(File, name=log.name, path=log.path) for log in _recursive_scan()]
+def _populate_table_files(model):
+    """ Populates File or Software table. """
+    # Get list of all files
+    if model is Software:
+        paths_found = {path.path for path in _recursive_scan(app.config['DEVICE_SW_DRIVE'], '.exe')}
+    elif model is File:
+        paths_found = {path.path for path in _recursive_scan()}
+    else:
+        raise TypeError('Type of File or Software expected as model.')
+    paths_existing = {file.path for file in model.query.all()}
+
+    # Paths that have been deleted from host but still exist in DB
+    paths_deleted = paths_existing - paths_found
+    for path in paths_deleted:
+        model.query.filter_by(path=path).update({'exists': False})   # TODO: TESTING REQUIRED
+
+    # Paths that are found and exists in DB
+    for path in paths_found and paths_existing:
+        try:
+            model.query.filter_by(path=path).update({'exists': True})
+        except Exception as e:
+            print(e)
+
+    # Paths found that doesn't exist in the DB
+    paths_new = paths_found - paths_existing
+    for path in paths_new:
+        name = os.path.split(path)[1]
+        new_model = model(name=name, path=path)
+        db.session.add(new_model)
+
     db.session.commit()
 
 
 def _populate_table_status():
     """ Insert STATUS_DICT into Status table """
     [db_insert_or_get(Status, name=name) for name in app.config['STATUS_DICT'][1:]]
-    db.session.commit()
-
-
-def _populate_table_software():
-    """ Populate Software table by searching for software in DEVICE_SW_DRIVE """
-    [db_insert_or_get(Software, name=file.name, path=file.path) for file in _recursive_scan(app.config['DEVICE_SW_DRIVE'], '.exe')]
     db.session.commit()
 
 
@@ -526,9 +547,9 @@ class AdminHomeView(AdminIndexView):
 if __name__ == '__main__':
     # Initial preparations, should probably refactor into separate config and create_app files
     db.create_all()
-    _populate_table_file()
+    _populate_table_files(File)
     _populate_table_status()
-    _populate_table_software()
+    _populate_table_files(Software)
 
     # Create an Admin user
     if app.config['CREATE_ADMIN']:

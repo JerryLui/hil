@@ -32,6 +32,7 @@ class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     path = db.Column(db.String(255), nullable=False, unique=True)
+    exists = db.Column(db.Boolean, nullable=False, default=True)
 
     def __repr__(self):
         return '<File: %r>' % self.path
@@ -49,6 +50,7 @@ class Software(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
     path = db.Column(db.String(255), nullable=False, unique=True)
+    exists = db.Column(db.Boolean, nullable=False, default=True)
 
     def __repr__(self):
         return '<Software: %r>' % self.name
