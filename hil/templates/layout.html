@@ -127,15 +127,21 @@
 					{% endif %}
 						{% if small %}
 							<td class="text-limit">
-							{% if task.file.name|length > 64 %}
-								...{{ task.file.name[-64:] }}
+                            {% if task.files|length > 1 %}
+                                Suite {{ task.id }}
+							{% elif task.files[0].name|length > 32 %}
+								{{ task.files[0].name[32:] }}...
 							{% else %}
-								{{ task.file.name }}
+								{{ task.files[0].name }}
 							{% endif %}
 							</td>
 						{% else %}
 							<td>
-							{{ task.file.name }}
+                                {% if task.files|length > 1 %}
+                                    Suite {{ task.id }}
+                                {% else %}
+                                    {{ task.files[0].name }}
+                                {% endif %}
 							</td>
 							<td><a href="/suite/{{ task.suite.id }}" class="link-white">{{ task.suite.id }}</a></td>
 						{% endif %}

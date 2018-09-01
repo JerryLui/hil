@@ -4,14 +4,14 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from sqlalchemy import func
 from werkzeug.utils import secure_filename
-from multiprocessing import Lock, Pipe, Process, set_start_method
+from multiprocessing import Lock, Pipe, Process, Pool
 
 import os
 import sys
 
 # Package specific imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from models import db, Task, File, User, Status, Suite, Software
+from models import db, Task, File, User, Status, Software
 from forms import TaskForm, UserForm, FileForm, PasswordForm
 from handlers import Worker
 
@@ -21,10 +21,10 @@ app.debug = True
 
 # -------------------- DEVICE CONFIGURATION --------------------
 # Configure the following to fit the device
-app.config['DEVICE_HOST'] = '10.239.124.134'    # Listening address, use device LAN-address
+app.config['DEVICE_HOST'] = ''    # Listening address, use device LAN-address
 app.config['DEVICE_PORT'] = 5005                # Port, ambiguous
-app.config['DEVICE_LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'  # Drive where the log files are stored
-app.config['DEVICE_SW_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives\Software'
+app.config['DEVICE_LOG_DRIVE'] = r'D:\Documents\Code\tmp\Logs'  # Drive where the log files are stored
+app.config['DEVICE_SW_DRIVE'] = r'D:\Documents\Code\tmp\SW'
 
 # Initialization parameters, used for first run.
 app.config['CREATE_ADMIN'] = True                           # create an admin user during init
@@ -130,9 +130,9 @@ def view_task(pid):
 @app.route('/suite/<int:sid>')
 def view_suite(sid):
     """ VIEW: Suite info page """
-    suite = Suite.query.filter_by(id=sid).first()
-    if suite:
-        return render_template('suite.html', suite=suite)
+    task = Task.query.filter_by(id=sid).first()
+    if task:
+        return render_template('suite.html', suite=task)
     else:
         flash('Suite not found.', 'warning')
         return redirect(url_for('view_index'))
@@ -250,34 +250,26 @@ def create_task(option):
                 if not files:
                     raise FileNotFoundError(2, 'No files found in suite.')
 
-                if len(files) == 1:
-                    suite_id = None
-                else:
-                    # New suite path
-                    new_suite = Suite()
-                    db.session.add(new_suite)
-                    db.session.commit()
-
-                    suite_id = new_suite.id
             else:
                 files = [File.query.filter_by(name=form.file.data).first()]
-                suite_id = None
 
-            for file in files:
-                new_task = Task(status_id=1, file_id=file.id, user_id=user.id, suite_id=suite_id, software_id=software.id)
-                db.session.add(new_task)
-                db.session.commit()
+            # Create and insert new task
+            new_task = Task(status_id=1, user=user, software=software)
+            [new_task.files.append(file) for file in files]
 
-                # Start new process
-                app.config['OPS_PIPE_PARENT'][new_task.id], app.config['OPS_PIPE_CHILD'][new_task.id] = Pipe(duplex=False)
-                app.config['OPS_PROCESS'][new_task.id] = Worker(new_task.file.path,
-                                                                new_task.software.path,
-                                                                new_task.id,
-                                                                get_log_path(new_task.file.path, new_task.id),
-                                                                app.config['OPS_LOCK'],
-                                                                app.config['OPS_PIPE_CHILD'][new_task.id])
-                app.config['OPS_PROCESS'][new_task.id].start()
-                app.logger.info('%s created new task on file %s', user.name, file.name)
+            db.session.add(new_task)
+            db.session.commit()
+
+            # Start new process
+            app.config['OPS_PIPE_PARENT'][new_task.id], app.config['OPS_PIPE_CHILD'][new_task.id] = Pipe(duplex=False)
+            app.config['OPS_PROCESS'][new_task.id] = Worker([file.path for file in new_task.files],
+                                                            new_task.software.path,
+                                                            new_task.id,
+                                                            get_log_path(new_task),
+                                                            app.config['OPS_LOCK'],
+                                                            app.config['OPS_PIPE_CHILD'][new_task.id])
+            app.config['OPS_PROCESS'][new_task.id].start()
+            app.logger.info('%s created new task %i.' % (user.name, new_task.id))
             flash('Task(s) created!', 'success')
 
         except Exception as xcpt:
@@ -344,7 +336,7 @@ def db_update_files():
     # TODO: Implement better way of detecting changes in file storage.
     try:
         if not app.config['FILE_UPDATE_PROCESS'].is_alive():
-            app.config['FILE_UPDATE_PROCESS'] = Process(target=_populate_table_files(File))
+            app.config['FILE_UPDATE_PROCESS'] = Pool.map(_populate_table_files(), (File, Software))
             app.config['FILE_UPDATE_PROCESS'].start()
     except AttributeError:
         pass
@@ -372,20 +364,23 @@ def favicon():
 
 
 # -------------------- HELPERS --------------------
-def get_log_path(file_path, task_id):
+def get_log_path(task):
     """
     :return : path
     The path to log file associated with given file_path and task_id
     """
-    return ''.join([os.path.splitext(file_path)[0], '_', str(task_id), '.log'])
+    if len(task.files) > 1:
+        return os.path.join(os.path.dirname(task.files[0].path), task.software.name + '_' + str(task.id) + '.log')
+    else:
+        return ''.join([os.path.splitext(task.files[0].path)[0], '_', str(task.id), '.log'])
 
 
-def get_log_text(file_path, task_id):
+def get_log_text(task):
     """
     :return : str
     List of log text entries in log file
     """
-    with open(get_log_path(file_path, task_id), 'r') as f:
+    with open(get_log_path(task), 'r') as f:
         return f.readlines()
 
 
@@ -405,13 +400,14 @@ def _sort_by_folder(file_list):
 
 
 def _get_task_log_form():
-    return TaskForm(file_choices=[(file.name, file.name) for file in File.query.all()],
+    files = sorted([file.name for file in File.query.all()])
+    return TaskForm(file_choices=list(zip(files, files)),
                     sw_choices=[(sw.name, sw.name) for sw in Software.query.all()],
                     prefix='log')
 
 
 def _get_task_suite_form():
-    return TaskForm(file_choices=[(k, os.path.split(k)[1]) for k in _sort_by_folder(File.query.all())],
+    return TaskForm(file_choices=[(suite, os.path.split(suite)[1]) for suite in _sort_by_folder(File.query.all())],
                     sw_choices=[(sw.name, sw.name) for sw in Software.query.all()],
                     prefix='suite')
 
@@ -447,12 +443,12 @@ def _populate_table_files(model):
     # Paths that have been deleted from host but still exist in DB
     paths_deleted = paths_existing - paths_found
     for path in paths_deleted:
-        model.query.filter_by(path=path).update({'exists': False})   # TODO: TESTING REQUIRED
+        model.query.filter_by(path=path).update({'stored': False}) # TODO: TEST
 
     # Paths that are found and exists in DB
     for path in paths_found and paths_existing:
         try:
-            model.query.filter_by(path=path).update({'exists': True})
+            model.query.filter_by(path=path).update({'stored': True})
         except Exception as e:
             print(e)
 
@@ -571,7 +567,6 @@ if __name__ == '__main__':
                     SessionModelView(File, db.session),
                     SessionModelView(Task, db.session),
                     SessionModelView(Software, db.session),
-                    SessionModelView(Suite, db.session, column_list=('id',)),
                     SessionModelView(Status, db.session, column_list=('id', 'name')))
     admin.init_app(app)
 
