@@ -61,7 +61,7 @@ app.app_context().push()
 @app.route('/index', methods=['GET'])
 def view_index(form=None):
     """ VIEW: Index page to handle registration, login and task creation """
-    # TODO: Multiselect task create
+    # Form selection
     if session.get('user_name'):
         if form:
             if form._prefix == 'log-':
@@ -84,6 +84,7 @@ def view_index(form=None):
                 form = (UserForm(prefix='login'), form)
         else:
             form = (UserForm(prefix='login'), UserForm(prefix='register'))
+
     return render_template('index.html',
                            form=form,
                            tasks=Task.query.order_by(Task.time_created.desc()).limit(30).all(),
@@ -229,7 +230,7 @@ def create_task(option):
             software = Software.query.filter_by(name=form.software.data).first()
 
             if option == 'suite':
-                files = File.query.filter(File.path.startswith(form.file.data)).all()
+                files = File.query.filter(File.path.startswith(form.file.data)).filter_by(stored=True).all()
 
                 # Filter out subfolders
                 files = [file for file in files if os.path.split(file.path)[0] == form.file.data]
@@ -238,7 +239,7 @@ def create_task(option):
                     raise FileNotFoundError(2, 'No files found in suite.')
 
             else:
-                files = [File.query.filter_by(name=form.file.data).first()]
+                files = [File.query.filter_by(name=form.file.data, stored=True).first()]
 
             # Create and insert new task
             new_task = Task(status_id=1, user=user, software=software)
@@ -320,13 +321,8 @@ def db_update_files():
     """
     Parallel way of updating file list
     """
-    # TODO: Implement better way of detecting changes in file storage.
-    try:
-        if not app.config['FILE_UPDATE_PROCESS'].is_alive():
-            app.config['FILE_UPDATE_PROCESS'] = Pool.map(_populate_table_files(), (File, Software))
-            app.config['FILE_UPDATE_PROCESS'].start()
-    except AttributeError:
-        pass
+    _populate_table_files(File)
+    _populate_table_files(Software)
     return redirect(url_for('view_index'))
 
 
@@ -387,15 +383,24 @@ def _sort_by_folder(file_list):
 
 
 def _get_task_log_form():
-    files = sorted([file.name for file in File.query.all()])
+    """
+    :return : TaskForm
+    Task form with log files as file choice
+    """
+    files = [file.name for file in File.query.filter_by(stored=True).order_by(File.name).all()]
     return TaskForm(file_choices=list(zip(files, files)),
-                    sw_choices=[(sw.name, sw.name) for sw in Software.query.all()],
+                    sw_choices=[(sw.name, sw.name) for sw in Software.query.order_by(Software.name).all()],
                     prefix='log')
 
 
 def _get_task_suite_form():
-    return TaskForm(file_choices=[(suite, os.path.split(suite)[1]) for suite in _sort_by_folder(File.query.all())],
-                    sw_choices=[(sw.name, sw.name) for sw in Software.query.all()],
+    """
+    :return : TaskForm
+    Task form with log folders as file choice
+    """
+    folders = _sort_by_folder(File.query.filter_by(stored=True).order_by(File.name).all())
+    return TaskForm(file_choices=[(folder, os.path.split(folder)[1]) for folder in folders],
+                    sw_choices=[(sw.name, sw.name) for sw in Software.query.order_by(Software.name).all()],
                     prefix='suite')
 
 
@@ -428,16 +433,12 @@ def _populate_table_files(model):
     paths_existing = {file.path for file in model.query.all()}
 
     # Paths that have been deleted from host but still exist in DB
-    paths_deleted = paths_existing - paths_found
-    for path in paths_deleted:
-        model.query.filter_by(path=path).update({'stored': False})  # TODO: TEST
+    for path in paths_existing - paths_found:
+        model.query.filter_by(path=path).update({'stored': False})
 
     # Paths that are found and exists in DB
-    for path in paths_found and paths_existing:
-        try:
-            model.query.filter_by(path=path).update({'stored': True})
-        except Exception as e:
-            print(e)
+    for path in paths_found.intersection(paths_existing):
+        model.query.filter_by(path=path).update({'stored': True})
 
     # Paths found that doesn't exist in the DB
     paths_new = paths_found - paths_existing

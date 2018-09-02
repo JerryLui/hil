@@ -40,8 +40,8 @@ class Worker(Process):
 
         # Run software on logs
         for file in self.file_paths:
-            logger.info('Starting run on: %s.' % file)
             self.pipe.send(3)
+            logger.info('Starting run on: %s.' % file)
             time.sleep(random.randint(5, 10))
             logger.info('Log finished.')
 
