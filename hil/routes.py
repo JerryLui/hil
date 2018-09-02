@@ -2,7 +2,6 @@ from flask import Flask, render_template, flash, session, redirect, url_for, req
 from flask import send_from_directory, send_file
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
-from sqlalchemy import func
 from werkzeug.utils import secure_filename
 from multiprocessing import Lock, Pipe, Process, Pool
 
@@ -15,6 +14,7 @@ from models import db, Task, File, User, Status, Software
 from forms import TaskForm, UserForm, FileForm, PasswordForm
 from handlers import Worker
 
+# TODO: Convert to SETUP SCRIPT
 app = Flask('hil')
 app.debug = True
 
