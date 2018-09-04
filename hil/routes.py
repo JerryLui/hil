@@ -22,8 +22,8 @@ app.debug = True
 # Configure the following to fit the device
 app.config['DEVICE_HOST'] = ''  # Listening address, use device LAN-address
 app.config['DEVICE_PORT'] = 5005  # Port, ambiguous
-app.config['DEVICE_LOG_DRIVE'] = r'D:\Documents\Code\tmp\Logs'  # Drive where the log files are stored
-app.config['DEVICE_SW_DRIVE'] = r'D:\Documents\Code\tmp\SW'
+app.config['DEVICE_LOG_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives'  # Drive where the log files are stored
+app.config['DEVICE_SW_DRIVE'] = r'C:\Users\JerryL\Downloads\Archives\Software'
 
 # Initialization parameters, used for first run.
 app.config['CREATE_ADMIN'] = True  # create an admin user during init
