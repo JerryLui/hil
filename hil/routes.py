@@ -15,6 +15,7 @@ from forms import TaskForm, UserForm, FileForm, PasswordForm
 from handlers import Worker
 
 # TODO: Convert to SETUP SCRIPT
+# TODO: Fix table string shortening on VIEW
 app = Flask('hil')
 app.debug = True
 
