@@ -126,9 +126,9 @@
 					{% endif %}
                         <td><a href="/task/{{ task.id }}" class="link-white">
                             {% if task.files|length > 1 %}
-                                Suite {{ task.id }}
+                                {{ task.files[0].path|dirname }}
                             {% elif task.files[0].name|length > 32 %}
-                                {{ task.files[0].name[32:] }}...
+                                {{ task.files[0].name[:32] }}...
                             {% else %}
                                 {{ task.files[0].name }}
                             {% endif %}

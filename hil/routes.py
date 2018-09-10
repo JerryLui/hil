@@ -120,8 +120,7 @@ def view_task(pid):
     """ VIEW: Task specific information """
     task = Task.query.filter_by(id=pid).first()
     if task:
-        return render_template('task.html', task=task, text=get_log_text(task),
-                               dirname=os.path.dirname(task.files[0].path))
+        return render_template('task.html', task=task, text=get_log_text(task))
     else:
         flash('Task not found.', 'warning')
         return redirect(url_for('view_index'))
@@ -345,6 +344,11 @@ def logout():
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('static/img', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+
+@app.template_filter('dirname')
+def dirname(pathlike):
+    return os.path.split(os.path.dirname(pathlike))[1]
 
 
 # -------------------- HELPERS --------------------
