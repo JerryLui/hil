@@ -1,10 +1,12 @@
 /*----- CLASS SPECIFICS -----*/
 .container-spaced-medium {
     margin-top: 30px;
+    margin-bottom: 30px;
 }
 
 .container-spaced-large {
     margin-top: 80px;
+    margin-bottom: 30px;
 }
 
 .bg-transparent-90 {
