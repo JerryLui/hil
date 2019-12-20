@@ -1,4 +1,5 @@
-# LOOPER
+# HIL
+Frontend implementation for Hardware-in-Loop device.
 
 ### Installation:
 Ensure the required packages are installed by running 
